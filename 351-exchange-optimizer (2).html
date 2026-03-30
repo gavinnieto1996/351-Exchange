@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>§351 Exchange Optimizer — FLP Atrato</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Fraunces:ital,wght@0,200;0,400;0,700;1,200;1,400&display=swap');
+
+  :root {
+    --bg: #07090f;
+    --surface: #0e1118;
+    --surface2: #141820;
+    --border: #1c2235;
+    --accent: #4d9fff;
+    --accent2: #7ec8ff;
+    --gold: #f0a500;
+    --gold2: #ffd166;
+    --green: #3ddc84;
+    --warn: #ffb347;
+    --danger: #ff5c5c;
+    --text: #d0daf0;
+    --muted: #4a5a80;
+    --mono: 'DM Mono', monospace;
+    --serif: 'Fraunces', serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--mono); font-size: 13px; min-height: 100vh; overflow-x: hidden; }
+
+  body::before {
+    content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background-image: linear-gradient(rgba(77,159,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(77,159,255,0.02) 1px, transparent 1px);
+    background-size: 44px 44px;
+  }
+
+  .container { max-width: 1480px; margin: 0 auto; padding: 24px; position: relative; z-index: 1; }
+
+  /* Header */
+  header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; padding-bottom: 18px; border-bottom: 1px solid var(--border); }
+  .logo-area { display: flex; align-items: center; gap: 16px; }
+  .logo-badge { width: 44px; height: 44px; background: var(--gold); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-family: var(--serif); font-size: 18px; font-weight: 700; color: #07090f; }
+  .logo-text h1 { font-family: var(--serif); font-size: 26px; font-weight: 200; font-style: italic; color: var(--accent2); letter-spacing: -0.5px; line-height: 1; }
+  .logo-text p { font-size: 10px; color: var(--muted); margin-top: 3px; letter-spacing: 0.12em; text-transform: uppercase; }
+  .header-right { text-align: right; }
+  .disclaimer { font-size: 10px; color: var(--muted); max-width: 340px; line-height: 1.6; border-left: 2px solid var(--border); padding-left: 12px; }
+
+  /* Process Steps Banner */
+  .steps-banner { display: flex; gap: 2px; margin-bottom: 24px; overflow-x: auto; }
+  .step-item { flex: 1; min-width: 100px; background: var(--surface); border: 1px solid var(--border); border-radius: 3px; padding: 8px 10px; text-align: center; position: relative; transition: border-color 0.2s; }
+  .step-item.active { border-color: var(--gold); background: rgba(240,165,0,0.06); }
+  .step-item.done { border-color: var(--green); background: rgba(61,220,132,0.04); }
+  .step-num { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
+  .step-name { font-size: 10px; color: var(--text); margin-top: 3px; font-weight: 500; }
+  .step-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--border); margin: 4px auto 0; }
+  .step-item.active .step-dot { background: var(--gold); }
+  .step-item.done .step-dot { background: var(--green); }
+
+  /* Layout */
+  .layout { display: grid; grid-template-columns: 1fr 440px; gap: 20px; }
+  .layout-full { grid-column: 1 / -1; }
+
+  /* Cards */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
+  .card-header { padding: 10px 16px; background: var(--surface2); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .card-title { font-size: 10px; text-transform: uppercase; letter-spacing: 0.15em; color: var(--accent); font-weight: 500; }
+  .card-body { padding: 16px; }
+
+  /* Forms */
+  label { display: block; font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; }
+  input[type="text"], input[type="number"], select, textarea {
+    width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text);
+    font-family: var(--mono); font-size: 12px; padding: 7px 10px; border-radius: 2px; outline: none; transition: border-color 0.2s;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+  select option { background: var(--surface2); }
+
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border: 1px solid var(--accent); background: transparent; color: var(--accent); font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; border-radius: 2px; transition: all 0.15s; white-space: nowrap; }
+  .btn:hover { background: var(--accent); color: var(--bg); }
+  .btn-primary { background: var(--gold); color: #07090f; border-color: var(--gold); font-weight: 600; }
+  .btn-primary:hover { background: var(--gold2); border-color: var(--gold2); }
+  .btn-sm { padding: 3px 9px; font-size: 10px; }
+  .btn-danger { border-color: var(--danger); color: var(--danger); }
+  .btn-danger:hover { background: var(--danger); color: white; }
+
+  /* Table */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  thead th { padding: 7px 8px; text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); border-bottom: 1px solid var(--border); white-space: nowrap; }
+  tbody tr { border-bottom: 1px solid rgba(28,34,53,0.7); transition: background 0.1s; }
+  tbody tr:hover { background: rgba(77,159,255,0.03); }
+  td { padding: 6px 8px; vertical-align: middle; }
+  td input { background: transparent; border: none; color: var(--text); font-family: var(--mono); font-size: 12px; width: 100%; padding: 2px 4px; outline: none; }
+  td input:focus { background: rgba(77,159,255,0.06); border-radius: 2px; }
+
+  .gain-pos { color: var(--green); }
+  .gain-neg { color: var(--danger); }
+
+  .badge { display: inline-block; padding: 2px 7px; border-radius: 2px; font-size: 9px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
+  .badge-blue  { background: rgba(77,159,255,0.15); color: var(--accent2); }
+  .badge-green { background: rgba(61,220,132,0.15); color: var(--green); }
+  .badge-gold  { background: rgba(240,165,0,0.15);  color: var(--gold2); }
+  .badge-warn  { background: rgba(255,179,71,0.15);  color: var(--warn); }
+  .badge-red   { background: rgba(255,92,92,0.15);   color: var(--danger); }
+  .badge-muted { background: rgba(74,90,128,0.2);    color: var(--muted); }
+
+  /* Rule blocks */
+  .rule-block { border: 1px solid var(--border); border-radius: 4px; overflow: hidden; margin-bottom: 10px; }
+  .rule-block-header { background: var(--surface2); padding: 9px 13px; display: flex; align-items: center; gap: 9px; border-bottom: 1px solid var(--border); }
+  .rule-num-badge { width: 20px; height: 20px; border-radius: 50%; background: var(--gold); color: #07090f; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; flex-shrink: 0; }
+  .rule-block-title { font-size: 12px; color: var(--text); font-weight: 500; flex: 1; }
+  .rule-block-body { padding: 11px 13px; font-size: 11px; color: var(--muted); line-height: 1.65; }
+  .rule-param { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+  .rule-param label { margin: 0; white-space: nowrap; }
+  .rule-param input { width: 68px; flex-shrink: 0; }
+  .rule-unit { font-size: 10px; color: var(--muted); }
+
+  /* Tabs */
+  .tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 14px; }
+  .tab { padding: 7px 14px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s; }
+  .tab.active { color: var(--gold2); border-bottom-color: var(--gold); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  .csv-drop { border: 1px dashed var(--border); border-radius: 4px; padding: 20px; text-align: center; color: var(--muted); cursor: pointer; transition: all 0.2s; }
+  .csv-drop:hover, .csv-drop.drag-over { border-color: var(--accent); color: var(--accent); background: rgba(77,159,255,0.03); }
+
+  .add-row { display: grid; grid-template-columns: 62px 1fr 80px 95px 100px 110px 90px 50px auto; gap: 6px; align-items: end; padding: 10px 0; border-top: 1px solid var(--border); margin-top: 6px; }
+  .form-group { display: flex; flex-direction: column; gap: 4px; }
+  .flex-row { display: flex; gap: 8px; align-items: center; }
+
+  /* Info boxes */
+  .info-box { background: rgba(77,159,255,0.04); border: 1px solid rgba(77,159,255,0.12); border-radius: 3px; padding: 10px 12px; font-size: 11px; color: var(--muted); line-height: 1.65; margin-bottom: 12px; }
+  .info-box strong { color: var(--accent2); font-weight: 500; }
+  .warn-box { background: rgba(255,179,71,0.05); border: 1px solid rgba(255,179,71,0.2); border-radius: 3px; padding: 10px 12px; font-size: 11px; color: var(--warn); line-height: 1.65; margin-bottom: 12px; }
+
+  /* ETF look-through panel */
+  .etf-lookthrough { background: rgba(77,159,255,0.04); border: 1px solid rgba(77,159,255,0.15); border-radius: 3px; padding: 10px 12px; margin-top: 4px; font-size: 11px; }
+  .etf-lookthrough-title { color: var(--accent); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; font-weight: 500; }
+
+  /* Share class aggregation */
+  .share-class-row { display: flex; gap: 8px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 11px; }
+  .share-class-row:last-child { border-bottom: none; }
+
+  /* Results */
+  .result-stats { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 18px; }
+  .stat-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 4px; padding: 12px; }
+  .stat-label { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 5px; }
+  .stat-value { font-family: var(--serif); font-size: 24px; font-weight: 200; color: var(--accent2); line-height: 1; }
+  .stat-sub { font-size: 10px; color: var(--muted); margin-top: 3px; }
+
+  .checks-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 18px; }
+  .check-item { display: flex; align-items: flex-start; gap: 9px; padding: 10px 12px; background: var(--surface2); border-radius: 3px; border-left: 3px solid var(--border); }
+  .check-item.pass { border-left-color: var(--green); }
+  .check-item.fail { border-left-color: var(--danger); }
+  .check-item.warn { border-left-color: var(--warn); }
+  .check-item.info { border-left-color: var(--accent); }
+  .check-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+  .check-name { font-size: 11px; color: var(--text); font-weight: 500; }
+  .check-detail { font-size: 10px; color: var(--muted); margin-top: 2px; line-height: 1.45; }
+  .check-val { font-size: 12px; margin-left: auto; font-weight: 500; white-space: nowrap; padding-left: 8px; }
+
+  .alloc-bar { display: flex; height: 30px; border-radius: 3px; overflow: hidden; gap: 1px; margin-bottom: 7px; }
+  .bar-seg { height: 100%; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 600; overflow: hidden; cursor: pointer; transition: opacity 0.2s; color: rgba(0,0,0,0.75); }
+  .bar-seg:hover { opacity: 0.8; }
+  .bar-legend { display: flex; flex-wrap: wrap; gap: 7px; }
+  .legend-item { display: flex; align-items: center; gap: 4px; font-size: 10px; color: var(--muted); }
+  .legend-dot { width: 7px; height: 7px; border-radius: 1px; flex-shrink: 0; }
+
+  .top5-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-top: 3px; }
+  .top5-fill { height: 100%; border-radius: 3px; transition: width 0.5s; }
+
+  .contrib-bar { display: inline-block; width: 44px; height: 3px; background: var(--border); border-radius: 2px; vertical-align: middle; margin-left: 5px; position: relative; top: -1px; }
+  .contrib-bar-fill { height: 100%; border-radius: 2px; background: var(--accent); }
+
+  /* Holding period indicator */
+  .hp-lt { color: var(--green); }
+  .hp-st { color: var(--warn); }
+
+  .empty-state { text-align: center; padding: 32px; color: var(--muted); }
+  .empty-state div:first-child { font-size: 28px; margin-bottom: 8px; }
+
+  .tag-ineligible { opacity: 0.35; }
+  .tag-mutual-fund { background: rgba(255,92,92,0.1); }
+  .tag-etf { background: rgba(77,159,255,0.05); }
+
+  @media (max-width: 1100px) { .layout { grid-template-columns: 1fr; } .result-stats { grid-template-columns: repeat(3,1fr); } }
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- HEADER -->
+<header>
+  <div class="logo-area">
+    <div class="logo-badge">FLP</div>
+    <div class="logo-text">
+      <h1>§351 Exchange Optimizer</h1>
+      <p>FLP Atrato Consulting · 25/50 Diversification Test · Tax Deferral Maximizer</p>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="disclaimer">⚠ For informational purposes only. Not tax, legal, or investment advice.<br>Consult a qualified CPA or attorney before executing any §351 exchange.</div>
+  </div>
+</header>
+
+<!-- PROCESS STEPS BANNER -->
+<div class="steps-banner">
+  <div class="step-item done"><div class="step-num">Step 01</div><div class="step-name">Suitability</div><div class="step-dot"></div></div>
+  <div class="step-item active"><div class="step-num">Step 02</div><div class="step-name">25/50 Test</div><div class="step-dot"></div></div>
+  <div class="step-item"><div class="step-num">Step 03</div><div class="step-name">Tax Lot ID</div><div class="step-dot"></div></div>
+  <div class="step-item"><div class="step-num">Step 04</div><div class="step-name">Asset Transfer</div><div class="step-dot"></div></div>
+  <div class="step-item"><div class="step-num">Step 05</div><div class="step-name">ETF Seeding</div><div class="step-dot"></div></div>
+  <div class="step-item"><div class="step-num">Step 06</div><div class="step-name">Exchange Listing</div><div class="step-dot"></div></div>
+  <div class="step-item"><div class="step-num">Step 07</div><div class="step-name">Post Launch</div><div class="step-dot"></div></div>
+  <div class="step-item"><div class="step-num">Step 08</div><div class="step-name">In-Kind Trading</div><div class="step-dot"></div></div>
+</div>
+
+<div class="layout">
+
+<!-- ==================== LEFT: PORTFOLIO ==================== -->
+<div style="display:flex;flex-direction:column;gap:18px;">
+
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Portfolio Holdings</span>
+      <div class="flex-row">
+        <button class="btn btn-sm" onclick="loadSample()">Load Sample</button>
+        <button class="btn btn-sm" onclick="clearAll()">Clear All</button>
+      </div>
+    </div>
+    <div class="card-body">
+
+      <div class="info-box">
+        <strong>Share class rule:</strong> GOOG/GOOGL and other share class pairs are automatically aggregated and treated as a single security for the 25/50 diversification test. Tag them with the same <em>Share Class Group</em>.
+        &nbsp;·&nbsp; <strong>Mutual funds</strong> are ineligible and excluded automatically.
+        &nbsp;·&nbsp; <strong>ETFs</strong> receive look-through treatment — enter underlying holdings separately.
+      </div>
+
+      <div class="tabs">
+        <div class="tab active" onclick="switchTab('manual')">Manual Entry</div>
+        <div class="tab" onclick="switchTab('csv')">CSV Import</div>
+        <div class="tab" onclick="switchTab('shareclass')">Share Class Groups</div>
+      </div>
+
+      <!-- MANUAL TAB -->
+      <div class="tab-content active" id="tab-manual">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Ticker</th><th>Company</th><th>Shares</th><th>Price ($)</th>
+                <th>Cost Basis ($)</th><th>Holding</th><th>Type</th>
+                <th>Eligible</th><th>Share Class Group</th><th></th>
+              </tr>
+            </thead>
+            <tbody id="portfolio-tbody"></tbody>
+          </table>
+        </div>
+        <div class="add-row">
+          <div class="form-group"><label>Ticker</label><input type="text" id="new-ticker" placeholder="AAPL" style="text-transform:uppercase"></div>
+          <div class="form-group"><label>Company</label><input type="text" id="new-company" placeholder="Apple Inc."></div>
+          <div class="form-group"><label>Shares</label><input type="number" id="new-shares" placeholder="100" min="0.001" step="any"></div>
+          <div class="form-group"><label>Price ($)</label><input type="number" id="new-price" placeholder="185" min="0.01" step="any"></div>
+          <div class="form-group"><label>Basis ($)</label><input type="number" id="new-basis" placeholder="10000" min="0" step="any"></div>
+          <div class="form-group">
+            <label>Holding</label>
+            <select id="new-holding"><option value="LT">Long-Term</option><option value="ST">Short-Term</option></select>
+          </div>
+          <div class="form-group">
+            <label>Type</label>
+            <select id="new-type">
+              <option value="stock">Stock</option>
+              <option value="etf">ETF (look-through)</option>
+              <option value="mutualfund">Mutual Fund</option>
+            </select>
+          </div>
+          <div class="form-group"><label>SC Group</label><input type="text" id="new-scgroup" placeholder="e.g. GOOG"></div>
+          <button class="btn btn-primary btn-sm" onclick="addPosition()" style="align-self:flex-end;margin-bottom:0;">+ Add</button>
+        </div>
+      </div>
+
+      <!-- CSV TAB -->
+      <div class="tab-content" id="tab-csv">
+        <div class="info-box">
+          <strong>CSV Format:</strong> Ticker, Company, Shares, Price, CostBasis, Holding(LT/ST), Type(stock/etf/mutualfund), ShareClassGroup<br>
+          Example: <code>GOOG, Alphabet C, 100, 165, 9000, LT, stock, GOOG</code>
+        </div>
+        <div class="csv-drop" id="csv-drop" onclick="document.getElementById('csv-file').click()"
+             ondragover="event.preventDefault();this.classList.add('drag-over')"
+             ondragleave="this.classList.remove('drag-over')"
+             ondrop="handleCsvDrop(event)">
+          <div style="font-size:22px;margin-bottom:6px;">📄</div>
+          <div>Drop CSV file here or click to upload</div>
+        </div>
+        <input type="file" id="csv-file" accept=".csv" style="display:none" onchange="handleCsvFile(event)">
+        <textarea id="csv-paste" placeholder="Or paste CSV rows here..." style="margin-top:10px;height:100px;resize:vertical;font-size:11px;"></textarea>
+        <button class="btn btn-primary btn-sm" style="margin-top:8px;" onclick="parseCsvText()">Import</button>
+      </div>
+
+      <!-- SHARE CLASS TAB -->
+      <div class="tab-content" id="tab-shareclass">
+        <div class="info-box">
+          <strong>Share Class Aggregation:</strong> Per IRS §351 rules, different share classes of the same company (e.g. GOOG and GOOGL, BRK.A and BRK.B) are treated as a single security. Positions with the same Share Class Group value are combined for the 25% cap test.
+        </div>
+        <div id="shareclass-list"></div>
+        <div style="margin-top:12px;font-size:11px;color:var(--muted);">Share class groups are set when adding positions (SC Group column). Positions with the same group tag are aggregated automatically during optimization.</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Contribution Settings -->
+  <div class="card">
+    <div class="card-header"><span class="card-title">Contribution Settings</span></div>
+    <div class="card-body">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;">
+        <div class="form-group">
+          <label>Target Contribution ($)</label>
+          <input type="number" id="target-amount" placeholder="Blank = maximize" step="10000" min="0">
+        </div>
+        <div class="form-group">
+          <label>Max % of Each Position</label>
+          <input type="number" id="max-shares-pct" value="100" min="1" max="100" step="1">
+        </div>
+        <div class="form-group">
+          <label>Fractional Shares?</label>
+          <select id="fractional"><option value="no">No — whole shares only</option><option value="yes">Yes — fractional ok</option></select>
+        </div>
+        <div class="form-group">
+          <label>Tax Account Type</label>
+          <select id="acct-type">
+            <option value="taxable">Taxable Account ✓</option>
+            <option value="ira">IRA / Tax-Advantaged ⚠</option>
+          </select>
+        </div>
+      </div>
+      <div id="ira-warning" style="display:none;" class="warn-box" style="margin-top:10px;">
+        ⚠ Tax-advantaged accounts (IRA, 401k, etc.) can technically participate in a §351 exchange but this is <strong>generally not recommended</strong> per the Atrato documentation, as the tax deferral benefit is redundant in a tax-advantaged account.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ==================== RIGHT: RULES ==================== -->
+<div>
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">§351 Eligibility Rules</span>
+      <span class="badge badge-gold">FLP Atrato</span>
+    </div>
+    <div class="card-body">
+
+      <div class="info-box">
+        Rules per FLP Atrato Consulting §351 Exchange documentation. <strong>Each tax ID</strong> must independently satisfy the 25/50 diversification test.
+      </div>
+
+      <!-- Rule 1 -->
+      <div class="rule-block">
+        <div class="rule-block-header">
+          <div class="rule-num-badge">1</div>
+          <div class="rule-block-title">No Mutual Funds</div>
+          <span class="badge badge-red">Hard Exclusion</span>
+        </div>
+        <div class="rule-block-body">
+          Mutual funds <strong style="color:var(--danger)">cannot be contributed</strong> to the §351 exchange. Positions flagged as "Mutual Fund" type are automatically excluded from the optimizer.
+        </div>
+      </div>
+
+      <!-- Rule 2 -->
+      <div class="rule-block">
+        <div class="rule-block-header">
+          <div class="rule-num-badge">2</div>
+          <div class="rule-block-title">ETF Look-Through Treatment</div>
+          <span class="badge badge-blue">Auto-Applied</span>
+        </div>
+        <div class="rule-block-body">
+          ETFs contributed receive look-through treatment — e.g., an S&P 500 ETF counts as its underlying 500 securities, not one position. Mark positions as "ETF (look-through)" type. For the 25/50 test, ETFs are treated as <em>diversified baskets</em> and weighted accordingly.
+          <div style="margin-top:8px;font-size:10px;color:var(--accent);">→ ETF positions will not breach the 25% single-position cap unless you enter underlying holdings that do.</div>
+        </div>
+      </div>
+
+      <!-- Rule 3 -->
+      <div class="rule-block">
+        <div class="rule-block-header">
+          <div class="rule-num-badge">3</div>
+          <div class="rule-block-title">Top-5 Positions &lt; 50%</div>
+          <span class="badge badge-green">Required</span>
+        </div>
+        <div class="rule-block-body">
+          The combined value of the 5 largest contributed positions must be less than 50% of the total contribution.
+          <div class="rule-param"><label>Top-N:</label><input type="number" id="rule-top-n" value="5" min="2" max="20"><span class="rule-unit">positions</span></div>
+          <div class="rule-param"><label>Cap:</label><input type="number" id="rule-50-cap" value="49.5" min="1" max="100" step="0.1"><span class="rule-unit">% combined max</span></div>
+        </div>
+      </div>
+
+      <!-- Rule 4 -->
+      <div class="rule-block">
+        <div class="rule-block-header">
+          <div class="rule-num-badge">4</div>
+          <div class="rule-block-title">Largest Position &lt; 25%</div>
+          <span class="badge badge-green">Required</span>
+        </div>
+        <div class="rule-block-body">
+          No single stock, bond, or asset can make up 25% or more of the total contributed portfolio value.
+          <div class="rule-param"><label>Cap:</label><input type="number" id="rule-25-cap" value="24.5" min="1" max="100" step="0.5"><span class="rule-unit">% max per position</span></div>
+        </div>
+      </div>
+
+      <!-- Rule 5 -->
+      <div class="rule-block">
+        <div class="rule-block-header">
+          <div class="rule-num-badge">5</div>
+          <div class="rule-block-title">Share Class Aggregation</div>
+          <span class="badge badge-blue">Auto-Applied</span>
+        </div>
+        <div class="rule-block-body">
+          Different share classes (GOOG/GOOGL, BRK.A/BRK.B) are treated as the <strong style="color:var(--accent2)">same security</strong> for diversification requirements. Their combined value is tested against the 25% cap. Use the Share Class Group field when entering positions.
+        </div>
+      </div>
+
+      <!-- Rule 6 -->
+      <div class="rule-block">
+        <div class="rule-block-header">
+          <div class="rule-num-badge">6</div>
+          <div class="rule-block-title">Prospectus Alignment</div>
+          <span class="badge badge-warn">Advisory</span>
+        </div>
+        <div class="rule-block-body">
+          Contributed securities must be in line with the ETF's prospectus mandate. Mark ineligible positions using the "Eligible" toggle when entering holdings.
+        </div>
+      </div>
+
+      <!-- Optional filters -->
+      <div class="rule-block">
+        <div class="rule-block-header">
+          <div class="rule-num-badge">+</div>
+          <div class="rule-block-title">Optional Filters</div>
+          <span class="badge badge-muted">Configurable</span>
+        </div>
+        <div class="rule-block-body">
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div>
+              <label>Exclude short-term positions (avoid ST gains)?</label>
+              <select id="exclude-st"><option value="no">No — include both LT and ST</option><option value="yes">Yes — long-term only</option></select>
+            </div>
+            <div>
+              <label>Exclude loss positions?</label>
+              <select id="exclude-losses"><option value="no">No — include all eligible</option><option value="yes">Yes — appreciated only</option></select>
+            </div>
+            <div>
+              <label>Minimum FMV per contributed position ($)</label>
+              <input type="number" id="min-pos-fmv" value="0" min="0" step="1000" placeholder="0 = no minimum">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" onclick="runOptimizer()" style="width:100%;justify-content:center;padding:12px;font-size:13px;margin-top:4px;letter-spacing:0.08em;">
+        ▶ &nbsp;Run 25/50 Optimization
+      </button>
+
+    </div>
+  </div>
+</div>
+
+<!-- ==================== RESULTS ==================== -->
+<div class="layout-full" id="results-section" style="display:none;">
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Optimization Results — 25/50 Diversification Test</span>
+      <div class="flex-row">
+        <span id="result-badge" class="badge badge-green">–</span>
+        <button class="btn btn-sm" onclick="exportCsv()">Export CSV</button>
+      </div>
+    </div>
+    <div class="card-body">
+
+      <div class="result-stats" id="result-stats"></div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
+        <div>
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;">§351 Rule Validation</div>
+          <div class="checks-grid" id="constraint-checks"></div>
+        </div>
+        <div>
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;">Top-5 Position Weights vs. 25% Limit</div>
+          <div id="top5-visual"></div>
+        </div>
+      </div>
+
+      <div style="margin-bottom:18px;">
+        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;">Contribution Allocation</div>
+        <div class="alloc-bar" id="alloc-bar"></div>
+        <div class="bar-legend" id="bar-legend"></div>
+      </div>
+
+      <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;">Recommended Contribution Detail</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th><th>Ticker</th><th>Company</th><th>Type</th><th>SC Group</th>
+              <th>Shares to Contribute</th><th>Total Held</th>
+              <th>Contribution FMV</th><th>% of Contrib</th>
+              <th>25% Check</th><th>Holding</th>
+              <th>Unrealized Gain ($)</th><th>Gain %</th>
+              <th>Est. Tax Deferred†</th>
+            </tr>
+          </thead>
+          <tbody id="result-tbody"></tbody>
+        </table>
+      </div>
+
+      <div style="margin-top:12px;font-size:10px;color:var(--muted);line-height:1.7;">
+        † Estimated federal capital gains tax deferred. Long-term rate: 23.8% (20% LTCG + 3.8% NIIT). Short-term rate: 40.8% (37% ordinary + 3.8% NIIT). Actual tax depends on your bracket, state taxes, and specific tax lots. This is not tax advice.
+        &nbsp;·&nbsp; <strong style="color:var(--accent2)">Cost basis transfers to the ETF</strong>, preserving your tax lots for future planning per IRS §351.
+        &nbsp;·&nbsp; Each tax ID must independently satisfy the 25/50 test.
+      </div>
+
+    </div>
+  </div>
+</div>
+
+</div><!-- /layout -->
+</div><!-- /container -->
+
+<script>
+let portfolio = [];
+let lastResults = null;
+
+const PALETTE = [
+  '#4d9fff','#7ec8ff','#3ddc84','#f0a500','#ffd166','#ff6b9d','#a78bfa','#fb923c',
+  '#34d399','#60a5fa','#f472b6','#4ade80','#facc15','#e879f9','#38bdf8','#f87171',
+  '#a3e635','#818cf8','#fb7185','#2dd4bf','#c084fc','#fdba74','#86efac','#93c5fd',
+];
+
+// ---- Account type warning ----
+document.getElementById('acct-type').addEventListener('change', function() {
+  document.getElementById('ira-warning').style.display = this.value === 'ira' ? 'block' : 'none';
+});
+
+// ---- Portfolio Management ----
+function addPosition() {
+  const ticker = document.getElementById('new-ticker').value.trim().toUpperCase();
+  const company = document.getElementById('new-company').value.trim();
+  const shares = parseFloat(document.getElementById('new-shares').value);
+  const price = parseFloat(document.getElementById('new-price').value);
+  const basis = parseFloat(document.getElementById('new-basis').value);
+  const holding = document.getElementById('new-holding').value;
+  const type = document.getElementById('new-type').value;
+  const scgroup = document.getElementById('new-scgroup').value.trim().toUpperCase() || ticker;
+
+  if (!ticker || isNaN(shares) || isNaN(price) || isNaN(basis) || shares <= 0 || price <= 0) {
+    alert('Please fill in all required fields.'); return;
+  }
+  portfolio.push({ id: Date.now()+Math.random(), ticker, company: company||ticker, shares, price, basis, holding, type, scgroup });
+  renderPortfolio();
+  renderShareClassTab();
+  ['new-ticker','new-company','new-shares','new-price','new-basis','new-scgroup'].forEach(id => document.getElementById(id).value='');
+}
+
+function removeRow(id) { portfolio = portfolio.filter(p => p.id !== id); renderPortfolio(); renderShareClassTab(); }
+
+function updateField(id, field, val) {
+  const p = portfolio.find(x => x.id === id);
+  if (!p) return;
+  if (field === 'ticker') p[field] = val.toUpperCase();
+  else if (['company','holding','type','scgroup'].includes(field)) p[field] = val;
+  else p[field] = parseFloat(val);
+  renderShareClassTab();
+}
+
+function renderPortfolio() {
+  const tbody = document.getElementById('portfolio-tbody');
+  if (!portfolio.length) {
+    tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state"><div>📊</div><div>No positions yet — add holdings above or load the sample portfolio.</div></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = portfolio.map(p => {
+    const fmv = p.shares * p.price;
+    const gain = fmv - p.basis;
+    const gPct = p.basis > 0 ? (gain/p.basis*100) : 0;
+    const gC = gain >= 0 ? 'gain-pos' : 'gain-neg';
+    const gS = gain >= 0 ? '+' : '';
+    const isMF = p.type === 'mutualfund';
+    const rowClass = isMF ? 'tag-ineligible tag-mutual-fund' : (p.type === 'etf' ? 'tag-etf' : '');
+    const typeBadge = p.type === 'mutualfund'
+      ? `<span class="badge badge-red">Mutual Fund</span>`
+      : p.type === 'etf'
+      ? `<span class="badge badge-blue">ETF</span>`
+      : `<span class="badge badge-muted">Stock</span>`;
+    return `<tr class="${rowClass}">
+      <td><input type="text" value="${p.ticker}" onchange="updateField(${p.id},'ticker',this.value)" style="width:52px;text-transform:uppercase;font-weight:500;color:var(--accent2)"></td>
+      <td><input type="text" value="${p.company}" onchange="updateField(${p.id},'company',this.value)" style="min-width:110px"></td>
+      <td><input type="number" value="${p.shares}" step="any" min="0.001" onchange="updateField(${p.id},'shares',this.value)" style="width:70px"></td>
+      <td><input type="number" value="${p.price}" step="any" min="0.01" onchange="updateField(${p.id},'price',this.value)" style="width:75px"></td>
+      <td><input type="number" value="${p.basis}" step="any" min="0" onchange="updateField(${p.id},'basis',this.value)" style="width:85px"></td>
+      <td>
+        <select onchange="updateField(${p.id},'holding',this.value)" style="background:transparent;border:none;font-family:var(--mono);font-size:11px;color:${p.holding==='LT'?'var(--green)':'var(--warn)'}">
+          <option value="LT"${p.holding==='LT'?' selected':''}>LT ✓</option>
+          <option value="ST"${p.holding==='ST'?' selected':''}>ST ⚠</option>
+        </select>
+      </td>
+      <td>
+        <select onchange="updateField(${p.id},'type',this.value)" style="background:transparent;border:none;font-family:var(--mono);font-size:11px;color:var(--muted)">
+          <option value="stock"${p.type==='stock'?' selected':''}>Stock</option>
+          <option value="etf"${p.type==='etf'?' selected':''}>ETF</option>
+          <option value="mutualfund"${p.type==='mutualfund'?' selected':''}>Mutual Fund</option>
+        </select>
+      </td>
+      <td>
+        <select onchange="updateField(${p.id},'scgroup',this.value.toUpperCase())" style="display:none"></select>
+        <input type="text" value="${p.scgroup}" onchange="updateField(${p.id},'scgroup',this.value.toUpperCase())" style="width:65px;text-transform:uppercase">
+      </td>
+      <td style="white-space:nowrap">
+        <span class="${gC}">${gS}${fmt(gain)}</span>
+        <span style="color:var(--muted);font-size:10px"> (${gS}${gPct.toFixed(0)}%)</span>
+        ${isMF?'<span class="badge badge-red" style="margin-left:4px">EXCLUDED</span>':''}
+        <button class="btn btn-danger btn-sm" onclick="removeRow(${p.id})" style="margin-left:4px;padding:2px 5px;">✕</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function renderShareClassTab() {
+  // Find groups with more than one ticker
+  const groups = {};
+  portfolio.forEach(p => {
+    if (!groups[p.scgroup]) groups[p.scgroup] = [];
+    groups[p.scgroup].push(p);
+  });
+  const multi = Object.entries(groups).filter(([k,v]) => v.length > 1 || k !== v[0].ticker);
+  const el = document.getElementById('shareclass-list');
+  if (!multi.length) {
+    el.innerHTML = '<div style="color:var(--muted);font-size:11px;padding:12px 0;">No share class groups detected. Add positions with the same Share Class Group tag.</div>';
+    return;
+  }
+  el.innerHTML = multi.map(([group, positions]) => {
+    const combinedFMV = positions.reduce((s,p)=>s+p.shares*p.price,0);
+    return `<div style="margin-bottom:12px;padding:10px 12px;background:rgba(77,159,255,0.04);border:1px solid rgba(77,159,255,0.15);border-radius:3px;">
+      <div style="font-size:12px;color:var(--accent2);font-weight:500;margin-bottom:6px;">Group: ${group} — Combined FMV: ${fmtFull(combinedFMV)}</div>
+      ${positions.map(p=>`<div class="share-class-row"><span style="color:var(--text);font-weight:500;width:60px">${p.ticker}</span><span style="color:var(--muted)">${p.company}</span><span style="margin-left:auto;color:var(--green)">${fmtFull(p.shares*p.price)}</span></div>`).join('')}
+    </div>`;
+  }).join('');
+}
+
+// ---- Tabs ----
+function switchTab(t) {
+  const tabs = ['manual','csv','shareclass'];
+  tabs.forEach((name,i) => {
+    document.querySelectorAll('.tab')[i].classList.toggle('active', name===t);
+    document.getElementById('tab-'+name).classList.toggle('active', name===t);
+  });
+  if (t==='shareclass') renderShareClassTab();
+}
+
+// ---- CSV ----
+function handleCsvDrop(e) { e.preventDefault(); document.getElementById('csv-drop').classList.remove('drag-over'); const f=e.dataTransfer.files[0]; if(f) readCsvFile(f); }
+function handleCsvFile(e) { const f=e.target.files[0]; if(f) readCsvFile(f); }
+function readCsvFile(file) { const r=new FileReader(); r.onload=e=>{document.getElementById('csv-paste').value=e.target.result;parseCsvText();}; r.readAsText(file); }
+function parseCsvText() {
+  const lines=document.getElementById('csv-paste').value.trim().split('\n').map(l=>l.trim()).filter(Boolean);
+  let added=0;
+  lines.forEach(line=>{
+    if(/^ticker|^symbol/i.test(line)) return;
+    const p=line.split(',').map(s=>s.trim().replace(/^"|"$/g,''));
+    if(p.length<5) return;
+    const [ticker,company,shares,price,basis,holding,type,scgroup]=p;
+    const s=parseFloat(shares),pr=parseFloat(price),b=parseFloat(basis);
+    if(!ticker||isNaN(s)||isNaN(pr)||isNaN(b)) return;
+    const tk=ticker.toUpperCase();
+    portfolio.push({id:Date.now()+Math.random(),ticker:tk,company:company||tk,shares:s,price:pr,basis:b,
+      holding:holding==='ST'?'ST':'LT',type:['etf','mutualfund'].includes(type)?type:'stock',
+      scgroup:(scgroup||tk).toUpperCase()});
+    added++;
+  });
+  if(added>0){renderPortfolio();renderShareClassTab();switchTab('manual');}
+  else alert('Could not parse CSV. Expected: Ticker, Company, Shares, Price, Basis, Holding, Type, SCGroup');
+}
+
+// ---- Portfolio Data ----
+function loadSample() {
+  portfolio = [
+    // Lot-level data aggregated per ticker — prices & basis updated from tax lot report. ABBV excluded (unrealized loss).
+    {id:1,  ticker:'AVGO',  company:'Broadcom Inc',               shares:4930, price:321.70,  basis:169108.71, holding:'LT', type:'stock', scgroup:'AVGO'},
+    {id:2,  ticker:'GOOGL', company:'Alphabet Inc Class A',       shares:2420, price:307.38,  basis:57621.08,  holding:'LT', type:'stock', scgroup:'ALPHABET'},
+    {id:3,  ticker:'AMZN',  company:'Amazon.com Inc',             shares:1880, price:207.92,  basis:74032.22,  holding:'LT', type:'stock', scgroup:'AMZN'},
+    {id:4,  ticker:'QQQ',   company:'Invesco QQQ TR',             shares:570,  price:609.24,  basis:20738.46,  holding:'LT', type:'etf',   scgroup:'QQQ'},
+    {id:5,  ticker:'AAPL',  company:'Apple Inc',                  shares:1205, price:272.95,  basis:64638.03,  holding:'LT', type:'stock', scgroup:'AAPL'},
+    {id:6,  ticker:'WMB',   company:'Williams Cos Inc',           shares:3930, price:74.77,   basis:72432.37,  holding:'LT', type:'stock', scgroup:'WMB'},
+    {id:7,  ticker:'MSFT',  company:'Microsoft Corp',             shares:590,  price:401.72,  basis:158688.28, holding:'LT', type:'stock', scgroup:'MSFT'},
+    {id:8,  ticker:'BLK',   company:'BlackRock Inc',              shares:190,  price:1090.27, basis:71623.76,  holding:'LT', type:'stock', scgroup:'BLK'},
+    {id:9,  ticker:'NVDA',  company:'NVIDIA Corp',                shares:650,  price:184.89,  basis:30819.43,  holding:'LT', type:'stock', scgroup:'NVDA'},
+    {id:10, ticker:'HD',    company:'Home Depot Inc',             shares:310,  price:375.09,  basis:50031.90,  holding:'LT', type:'stock', scgroup:'HD'},
+    {id:11, ticker:'ETN',   company:'Eaton Corp PLC',             shares:260,  price:374.59,  basis:30504.00,  holding:'LT', type:'stock', scgroup:'ETN'},
+    {id:12, ticker:'IEFA',  company:'iShares Core MSCI EAFE ETF', shares:945,  price:98.43,   basis:81529.88,  holding:'LT', type:'etf',   scgroup:'IEFA'},
+    {id:13, ticker:'JPM',   company:'JPMorgan Chase & Co',        shares:265,  price:306.13,  basis:37526.28,  holding:'LT', type:'stock', scgroup:'JPM'},
+    {id:14, ticker:'MSI',   company:'Motorola Solutions Inc',     shares:165,  price:471.95,  basis:44536.17,  holding:'LT', type:'stock', scgroup:'MSI'},
+    {id:15, ticker:'COST',  company:'Costco Wholesale Corp',      shares:65,   price:986.74,  basis:33448.66,  holding:'LT', type:'stock', scgroup:'COST'},
+    {id:16, ticker:'LLY',   company:'Eli Lilly and Co',           shares:60,   price:1022.02, basis:19955.40,  holding:'LT', type:'stock', scgroup:'LLY'},
+    {id:17, ticker:'UNH',   company:'UnitedHealth Group Inc',     shares:200,  price:286.66,  basis:9798.88,   holding:'LT', type:'stock', scgroup:'UNH'},
+    {id:18, ticker:'GILD',  company:'Gilead Sciences Inc',        shares:325,  price:143.77,  basis:36068.21,  holding:'LT', type:'stock', scgroup:'GILD'},
+    {id:19, ticker:'TT',    company:'Trane Technologies PLC',     shares:100,  price:457.14,  basis:34773.00,  holding:'LT', type:'stock', scgroup:'TT'},
+    {id:20, ticker:'CBRE',  company:'CBRE Group Inc',             shares:265,  price:150.00,  basis:35231.75,  holding:'LT', type:'stock', scgroup:'CBRE'},
+  ];
+  renderPortfolio();
+  renderShareClassTab();
+}
+
+function clearAll() { portfolio=[]; renderPortfolio(); renderShareClassTab(); document.getElementById('results-section').style.display='none'; }
+
+// ---- OPTIMIZER ----
+function runOptimizer() {
+  if (!portfolio.length) { alert('Add portfolio holdings first.'); return; }
+
+  const cap25   = parseFloat(document.getElementById('rule-25-cap').value)/100;
+  const topN    = parseInt(document.getElementById('rule-top-n').value);
+  const cap50   = parseFloat(document.getElementById('rule-50-cap').value)/100;
+  const maxPct  = parseFloat(document.getElementById('max-shares-pct').value)/100;
+  const frac    = document.getElementById('fractional').value==='yes';
+  const excLoss = document.getElementById('exclude-losses').value==='yes';
+  const excST   = document.getElementById('exclude-st').value==='yes';
+  const minFMV  = parseFloat(document.getElementById('min-pos-fmv').value)||0;
+  const target  = parseFloat(document.getElementById('target-amount').value)||Infinity;
+  const LTCG    = 0.238;
+  const STCG    = 0.408;
+
+  // Pre-process: exclude mutual funds always, apply optional filters
+  // ETFs are included but treated as diversified (won't breach 25% on their own)
+  let eligible = portfolio.map(p => {
+    const totalFMV = p.shares * p.price;
+    const gain = totalFMV - p.basis;
+    const gainPct = p.basis > 0 ? (gain/p.basis*100) : 0;
+    const maxShares = frac ? p.shares*maxPct : Math.floor(p.shares*maxPct);
+    return {...p, totalFMV, gain, gainPct, maxShares};
+  }).filter(p => {
+    if (p.type === 'mutualfund') return false;   // Rule 1: no mutual funds
+    if (p.maxShares <= 0) return false;
+    if (excLoss && p.gain < 0) return false;
+    if (excST && p.holding === 'ST') return false;
+    return true;
+  });
+
+  if (!eligible.length) { alert('No eligible positions after applying filters.'); return; }
+
+  // Sort by FMV desc to maximize contribution value
+  eligible.sort((a,b) => b.totalFMV - a.totalFMV);
+
+  let allocShares = eligible.map(() => 0);
+
+  // Build share-class group map: scgroup -> [indices in eligible]
+  function buildSCMap(as) {
+    const scMap = {};
+    eligible.forEach((p,i) => {
+      if (!scMap[p.scgroup]) scMap[p.scgroup] = [];
+      scMap[p.scgroup].push(i);
+    });
+    return scMap;
+  }
+
+  function totalFMVOf(as) {
+    return as.reduce((s,sh,i) => s + sh*eligible[i].price, 0);
+  }
+
+  // For 25% test, ETFs count as diversified (pass automatically unless they are literally > 25%)
+  // For share class groups, aggregate the group's combined FMV
+  function getGroupFMVs(as) {
+    const scMap = buildSCMap(as);
+    const groupFMVs = {};
+    Object.entries(scMap).forEach(([grp, idxs]) => {
+      groupFMVs[grp] = idxs.reduce((s,i) => s + as[i]*eligible[i].price, 0);
+    });
+    return groupFMVs;
+  }
+
+  function check25(as) {
+    const total = totalFMVOf(as);
+    if (total <= 0) return true;
+    const groupFMVs = getGroupFMVs(as);
+    return Object.entries(groupFMVs).every(([grp, gfmv]) => {
+      // ETFs: look-through treatment — don't count against 25% cap
+      const positions = eligible.filter(p => p.scgroup === grp);
+      if (positions.every(p => p.type === 'etf')) return true;
+      return gfmv / total <= cap25 + 1e-9;
+    });
+  }
+
+  function check50(as) {
+    const total = totalFMVOf(as);
+    if (total <= 0) return true;
+    // Use individual position FMVs for top-N test (ETFs count as one here too,
+    // but their look-through means we treat them as fully diversified = not in top-N for this test)
+    const vals = as.map((sh,i) => {
+      const p = eligible[i];
+      if (p.type === 'etf') return 0; // ETFs exempt from top-N concentration test
+      return sh * p.price;
+    }).sort((a,b) => b-a);
+    const topSum = vals.slice(0, topN).reduce((s,v) => s+v, 0);
+    return topSum / total < cap50 + 1e-9;
+  }
+
+  function isValid(as) { return check25(as) && check50(as); }
+
+  // Greedy optimizer
+  let improved = true, pass = 0;
+  while (improved && pass < 400) {
+    improved = false; pass++;
+    for (let i = 0; i < eligible.length; i++) {
+      const p = eligible[i];
+      const cur = allocShares[i];
+      const maxAdd = frac ? (p.maxShares - cur) : Math.floor(p.maxShares - cur);
+      if (maxAdd <= (frac ? 1e-9 : 0.5)) continue;
+
+      const curTotal = totalFMVOf(allocShares);
+      if (curTotal >= target) break;
+
+      const budgetShares = (target - curTotal) / p.price;
+      let hi = frac ? Math.min(maxAdd, budgetShares) : Math.min(maxAdd, Math.floor(budgetShares));
+      if (hi <= (frac ? 1e-9 : 0.5)) continue;
+
+      const tryFull = allocShares.map((s,j) => j===i ? s+hi : s);
+      if (isValid(tryFull)) { allocShares = tryFull; improved = true; continue; }
+
+      // Binary search
+      let lo = frac ? 1e-6 : 1, best = 0, hiB = hi, attempts = 35;
+      const tryOne = allocShares.map((s,j) => j===i ? s+lo : s);
+      if (!isValid(tryOne)) continue;
+      best = lo;
+      while (attempts-- > 0) {
+        const mid = frac ? (lo+hiB)/2 : Math.floor((lo+hiB)/2);
+        if (mid < lo) break;
+        const t = allocShares.map((s,j) => j===i ? s+mid : s);
+        if (isValid(t)) { best=mid; lo=mid+(frac?1e-9:1); }
+        else hiB = mid-(frac?1e-9:1);
+        if (!frac && Math.floor(lo) > Math.floor(hiB)) break;
+      }
+      if (best > 0) { allocShares[i] += best; improved = true; }
+    }
+  }
+
+  // Remove below minFMV
+  allocShares = allocShares.map((sh,i) => sh*eligible[i].price < minFMV && sh>0 ? 0 : sh);
+
+  // Build results
+  const items = [];
+  allocShares.forEach((sh,i) => {
+    if (sh <= 0) return;
+    const p = eligible[i];
+    const fmv = sh * p.price;
+    const basisPortion = p.basis * (sh/p.shares);
+    const gain = fmv - basisPortion;
+    const gainPct = basisPortion > 0 ? (gain/basisPortion*100) : 0;
+    const rate = p.holding === 'ST' ? STCG : LTCG;
+    const taxDeferred = Math.max(0, gain * rate);
+    items.push({...p, contribShares:sh, fmv, basisPortion, gain, gainPct, taxDeferred});
+  });
+
+  items.sort((a,b) => b.fmv - a.fmv);
+  const totalFMV = items.reduce((s,r) => s+r.fmv, 0);
+  const totalGain = items.reduce((s,r) => s+r.gain, 0);
+  const totalTax = items.reduce((s,r) => s+r.taxDeferred, 0);
+
+  // Final validation
+  const finalAlloc = allocShares;
+  const groupFMVs = getGroupFMVs(finalAlloc);
+  const nonETFGroupFMVs = Object.entries(groupFMVs).filter(([grp]) => {
+    const positions = eligible.filter(p => p.scgroup === grp);
+    return !positions.every(p => p.type === 'etf');
+  });
+  const maxSingleGroup = totalFMV > 0 ? Math.max(...nonETFGroupFMVs.map(([,v]) => v/totalFMV*100), 0) : 0;
+  const maxSingleGroupName = nonETFGroupFMVs.length > 0
+    ? nonETFGroupFMVs.sort((a,b)=>b[1]-a[1])[0][0] : '—';
+
+  const top5Val = items.filter(r => r.type !== 'etf').slice(0,topN).reduce((s,r) => s+r.fmv, 0);
+  const top5Pct = totalFMV > 0 ? top5Val/totalFMV*100 : 0;
+
+  const pass25v = maxSingleGroup <= cap25*100+0.01;
+  const pass50v = top5Pct < cap50*100+0.01;
+
+  const excludedMFs = portfolio.filter(p => p.type === 'mutualfund');
+  const excludedST = excST ? portfolio.filter(p => p.holding === 'ST' && p.type !== 'mutualfund') : [];
+
+  lastResults = {items, totalFMV, totalGain, totalTax, top5Val, top5Pct, maxSingleGroup, maxSingleGroupName,
+    pass25:pass25v, pass50:pass50v, allPass:pass25v&&pass50v, cap25, cap50, topN,
+    excludedMFs, excludedST, groupFMVs};
+  renderResults(lastResults);
+}
+
+// ---- RENDER ----
+function renderResults(r) {
+  const sec = document.getElementById('results-section');
+  sec.style.display = 'block';
+  sec.scrollIntoView({behavior:'smooth', block:'start'});
+
+  const badge = document.getElementById('result-badge');
+  badge.textContent = r.allPass ? '✓ 25/50 Test Passed' : '⚠ Constraint Issue';
+  badge.className = 'badge ' + (r.allPass ? 'badge-green' : 'badge-red');
+
+  const portTotal = portfolio.reduce((s,p) => s+p.shares*p.price, 0);
+  const portGain  = portfolio.reduce((s,p) => s+(p.shares*p.price-p.basis), 0);
+  const ltGain    = r.items.filter(i=>i.holding==='LT').reduce((s,i)=>s+i.gain,0);
+  const stGain    = r.items.filter(i=>i.holding==='ST').reduce((s,i)=>s+i.gain,0);
+
+  document.getElementById('result-stats').innerHTML = `
+    <div class="stat-box">
+      <div class="stat-label">Contribution FMV</div>
+      <div class="stat-value">${fmt(r.totalFMV)}</div>
+      <div class="stat-sub">${r.items.length} positions · ${portTotal>0?(r.totalFMV/portTotal*100).toFixed(1):0}% of portfolio</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">Total Deferred Gain</div>
+      <div class="stat-value" style="color:var(--gold2)">${fmt(r.totalGain)}</div>
+      <div class="stat-sub">LT: ${fmt(ltGain)} · ST: ${fmt(stGain)}</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">Est. Tax Deferred</div>
+      <div class="stat-value" style="color:var(--warn)">${fmt(r.totalTax)}</div>
+      <div class="stat-sub">LT @ 23.8% / ST @ 40.8%</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">Largest SC Group</div>
+      <div class="stat-value" style="color:${r.pass25?'var(--green)':'var(--danger)'}">${r.maxSingleGroup.toFixed(1)}%</div>
+      <div class="stat-sub">${r.maxSingleGroupName} · Limit ${(r.cap25*100).toFixed(0)}% · ${r.pass25?'✓':'✗'}</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">Top-${r.topN} Combined</div>
+      <div class="stat-value" style="color:${r.pass50?'var(--green)':'var(--danger)'}">${r.top5Pct.toFixed(1)}%</div>
+      <div class="stat-sub">Limit &lt;${(r.cap50*100).toFixed(1)}% · ${r.pass50?'✓':'✗'}</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">Excluded</div>
+      <div class="stat-value" style="color:var(--danger)">${r.excludedMFs.length}</div>
+      <div class="stat-sub">Mutual fund${r.excludedMFs.length!==1?'s':''}: ${r.excludedMFs.map(p=>p.ticker).join(', ')||'none'}</div>
+    </div>
+  `;
+
+  // Constraint checks
+  document.getElementById('constraint-checks').innerHTML = `
+    <div class="check-item ${r.pass25?'pass':'fail'}">
+      <div class="check-icon">${r.pass25?'✅':'❌'}</div>
+      <div style="flex:1">
+        <div class="check-name">Rule 4: 25% Single-Position Limit</div>
+        <div class="check-detail">No single security (or share class group) may exceed ${(r.cap25*100).toFixed(0)}% of contribution.<br>
+          Largest: <strong>${r.maxSingleGroupName}</strong> at ${r.maxSingleGroup.toFixed(2)}%</div>
+      </div>
+      <div class="check-val" style="color:${r.pass25?'var(--green)':'var(--danger)'}">${r.maxSingleGroup.toFixed(2)}%</div>
+    </div>
+    <div class="check-item ${r.pass50?'pass':'fail'}">
+      <div class="check-icon">${r.pass50?'✅':'❌'}</div>
+      <div style="flex:1">
+        <div class="check-name">Rule 3: Top-${r.topN} Combined &lt; 50%</div>
+        <div class="check-detail">Top ${r.topN} non-ETF positions combined must be &lt;${(r.cap50*100).toFixed(1)}%.<br>
+          Top-${r.topN}: ${r.items.filter(i=>i.type!=='etf').slice(0,r.topN).map(i=>i.ticker).join(', ')}</div>
+      </div>
+      <div class="check-val" style="color:${r.pass50?'var(--green)':'var(--danger)'}">${r.top5Pct.toFixed(2)}%</div>
+    </div>
+    <div class="check-item ${r.excludedMFs.length===0?'pass':'info'}">
+      <div class="check-icon">${r.excludedMFs.length===0?'✅':'ℹ️'}</div>
+      <div style="flex:1">
+        <div class="check-name">Rule 1: No Mutual Funds</div>
+        <div class="check-detail">${r.excludedMFs.length===0?'No mutual funds in contribution.':'Excluded: '+r.excludedMFs.map(p=>p.ticker+' ('+p.company+')').join(', ')}</div>
+      </div>
+      <div class="check-val" style="color:${r.excludedMFs.length===0?'var(--green)':'var(--warn)'}">
+        ${r.excludedMFs.length===0?'Clear':r.excludedMFs.length+' excluded'}
+      </div>
+    </div>
+    <div class="check-item info">
+      <div class="check-icon">ℹ️</div>
+      <div style="flex:1">
+        <div class="check-name">Rule 2 &amp; 5: ETF Look-Through &amp; Share Classes</div>
+        <div class="check-detail">
+          ETFs in contribution: ${r.items.filter(i=>i.type==='etf').map(i=>i.ticker).join(', ')||'none'} (exempt from 25% cap)<br>
+          Share class groups aggregated: ${Object.keys(r.groupFMVs).length} groups
+        </div>
+      </div>
+      <div class="check-val" style="color:var(--accent)">Applied</div>
+    </div>
+  `;
+
+  // Alloc bar
+  document.getElementById('alloc-bar').innerHTML = r.items.map((item,i) => {
+    const pct = item.fmv/r.totalFMV*100;
+    const c = PALETTE[i%PALETTE.length];
+    return `<div class="bar-seg" style="width:${pct}%;background:${c}" title="${item.ticker}: ${pct.toFixed(1)}%">${pct>3?item.ticker:''}</div>`;
+  }).join('');
+  document.getElementById('bar-legend').innerHTML = r.items.slice(0,18).map((item,i) => {
+    const pct = item.fmv/r.totalFMV*100;
+    return `<div class="legend-item"><div class="legend-dot" style="background:${PALETTE[i%PALETTE.length]}"></div>${item.ticker} ${pct.toFixed(1)}%</div>`;
+  }).join('');
+
+  // Top-5 visual
+  const topItems = [...r.items].filter(i=>i.type!=='etf').slice(0,r.topN);
+  document.getElementById('top5-visual').innerHTML = topItems.map((item,i) => {
+    const pct = item.fmv/r.totalFMV*100;
+    const over = pct > r.cap25*100+0.01;
+    const color = over ? 'var(--danger)' : PALETTE[i%PALETTE.length];
+    return `<div style="margin-bottom:6px;">
+      <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px;">
+        <span>#${i+1} <strong style="color:var(--accent2)">${item.ticker}</strong> <span style="color:var(--muted)">${item.company}</span></span>
+        <span style="color:${over?'var(--danger)':'var(--text)'}">${pct.toFixed(2)}%</span>
+      </div>
+      <div class="top5-bar"><div class="top5-fill" style="width:${Math.min(pct/(r.cap25*100)*100,100)}%;background:${color}"></div></div>
+    </div>`;
+  }).join('') + `
+    <div style="margin-top:10px;padding:9px 12px;border:1px solid ${r.pass50?'var(--border)':'var(--danger)'};border-radius:3px;background:${r.pass50?'var(--surface2)':'rgba(255,92,92,0.05)'};display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:11px;color:var(--muted)">Top-${r.topN} combined</span>
+      <span style="font-size:14px;font-weight:500;color:${r.pass50?'var(--green)':'var(--danger)'}">${r.top5Pct.toFixed(2)}% <span style="font-size:11px;color:var(--muted)">/ &lt;${(r.cap50*100).toFixed(1)}%</span></span>
+    </div>`;
+
+  // Table
+  document.getElementById('result-tbody').innerHTML = r.items.map((item,i) => {
+    const pct = item.fmv/r.totalFMV*100;
+    // For share class aggregated group, show combined pct
+    const isShared = portfolio.filter(p => p.scgroup === item.scgroup && p.type !== 'mutualfund').length > 1;
+    const over25 = item.type !== 'etf' && pct > r.cap25*100+0.01;
+    const gS = item.gain>=0?'+':'';
+    const gC = item.gain>=0?'gain-pos':'gain-neg';
+    const typeBadge = item.type==='etf'
+      ? `<span class="badge badge-blue">ETF</span>`
+      : `<span class="badge badge-muted">Stock</span>`;
+    const holdBadge = item.holding==='LT'
+      ? `<span class="badge badge-green">LT</span>`
+      : `<span class="badge badge-warn">ST</span>`;
+    return `<tr>
+      <td style="color:var(--muted)">${i+1}</td>
+      <td style="font-weight:500;color:var(--accent2)">${item.ticker}</td>
+      <td style="font-size:11px;color:var(--muted);max-width:130px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${item.company}</td>
+      <td>${typeBadge}</td>
+      <td style="font-size:10px;color:${isShared?'var(--gold2)':'var(--muted)'}">${item.scgroup}${isShared?' ⚑':''}</td>
+      <td>${fracFmt(item.contribShares)}</td>
+      <td style="color:var(--muted)">${fracFmt(item.shares)}</td>
+      <td>${fmtFull(item.fmv)}</td>
+      <td>${pct.toFixed(2)}%<span class="contrib-bar"><span class="contrib-bar-fill" style="width:${Math.min(pct/25*100,100)}%"></span></span></td>
+      <td>${item.type==='etf'
+        ? `<span class="badge badge-blue">Look-Through</span>`
+        : `<span class="badge ${over25?'badge-red':'badge-green'}">${over25?'✗ OVER':'✓ OK'}</span>`}</td>
+      <td>${holdBadge}</td>
+      <td class="${gC}">${gS}${fmtFull(item.gain)}</td>
+      <td class="${gC}">${gS}${item.gainPct.toFixed(1)}%</td>
+      <td style="color:var(--warn)">${fmtFull(item.taxDeferred)}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ---- Utilities ----
+function fracFmt(n) { return n%1===0?n.toLocaleString():n.toFixed(4); }
+function fmt(n) { const a=Math.abs(n),s=n<0?'-':''; if(a>=1e6)return s+'$'+(a/1e6).toFixed(2)+'M'; if(a>=1e3)return s+'$'+(a/1e3).toFixed(1)+'K'; return s+'$'+a.toFixed(0); }
+function fmtFull(n) { return (n<0?'-$':'$')+Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+
+function exportCsv() {
+  if (!lastResults) return;
+  const rows = [['Rank','Ticker','Company','Type','ShareClassGroup','Holding','SharesContributed','TotalSharesHeld','ContributionFMV','PctOfContribution','25%Check','UnrealizedGain','GainPct','EstTaxDeferred']];
+  lastResults.items.forEach((item,i) => {
+    const pct = (item.fmv/lastResults.totalFMV*100).toFixed(2);
+    const chk = item.type==='etf'?'LOOK-THROUGH':parseFloat(pct)<=lastResults.cap25*100+0.01?'PASS':'FAIL';
+    rows.push([i+1,item.ticker,item.company,item.type,item.scgroup,item.holding,
+      item.contribShares,item.shares,item.fmv.toFixed(2),pct,chk,
+      item.gain.toFixed(2),item.gainPct.toFixed(1),item.taxDeferred.toFixed(2)]);
+  });
+  rows.push([],[`Total Contribution FMV`,lastResults.totalFMV.toFixed(2)]);
+  rows.push([`Total Deferred Gain`,lastResults.totalGain.toFixed(2)]);
+  rows.push([`Est Tax Deferred`,lastResults.totalTax.toFixed(2)]);
+  rows.push([`25% Rule (max SC group)`,lastResults.maxSingleGroup.toFixed(2)+'%',lastResults.pass25?'PASS':'FAIL']);
+  rows.push([`50% Top-${lastResults.topN} Rule`,lastResults.top5Pct.toFixed(2)+'%',lastResults.pass50?'PASS':'FAIL']);
+  rows.push([`Mutual Funds Excluded`,lastResults.excludedMFs.map(p=>p.ticker).join('; ')]);
+  const csv = rows.map(r=>r.join(',')).join('\n');
+  const blob = new Blob([csv],{type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download='flp_atrato_351_contribution.csv'; a.click();
+}
+
+loadSample(); // Pre-load client portfolio
+</script>
+</body>
+</html>
