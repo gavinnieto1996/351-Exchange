@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Model Portfolio Selector — FLP Atrato</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Fraunces:ital,wght@0,200;0,400;0,700;1,200;1,400&display=swap');
+
+  :root {
+    --bg: #07090f;
+    --surface: #0e1118;
+    --surface2: #141820;
+    --border: #1c2235;
+    --accent: #4d9fff;
+    --accent2: #7ec8ff;
+    --gold: #f0a500;
+    --gold2: #ffd166;
+    --green: #3ddc84;
+    --warn: #ffb347;
+    --danger: #ff5c5c;
+    --text: #d0daf0;
+    --muted: #4a5a80;
+    --mono: 'DM Mono', monospace;
+    --serif: 'Fraunces', serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--mono); font-size: 13px; min-height: 100vh; overflow-x: hidden; }
+
+  body::before {
+    content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background-image: linear-gradient(rgba(77,159,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(77,159,255,0.02) 1px, transparent 1px);
+    background-size: 44px 44px;
+  }
+
+  .container { max-width: 1480px; margin: 0 auto; padding: 24px; position: relative; z-index: 1; }
+
+  /* Header */
+  header { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 24px; padding-bottom: 18px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+  .logo-area { display: flex; align-items: center; gap: 16px; }
+  .logo-badge { width: 44px; height: 44px; background: var(--gold); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-family: var(--serif); font-size: 18px; font-weight: 700; color: #07090f; }
+  .logo-text h1 { font-family: var(--serif); font-size: 26px; font-weight: 200; font-style: italic; color: var(--accent2); letter-spacing: -0.5px; line-height: 1; }
+  .logo-text p { font-size: 10px; color: var(--muted); margin-top: 3px; letter-spacing: 0.12em; text-transform: uppercase; }
+  .disclaimer { font-size: 10px; color: var(--muted); max-width: 340px; line-height: 1.6; border-left: 2px solid var(--border); padding-left: 12px; }
+
+  /* Layout */
+  .layout { display: grid; grid-template-columns: 1fr 480px; gap: 20px; align-items: start; }
+  .result-col { position: sticky; top: 20px; display: flex; flex-direction: column; gap: 18px; }
+  @media (max-width: 1100px) { .layout { grid-template-columns: 1fr; } .result-col { position: static; } }
+
+  /* Cards */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; }
+  .card-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--border); }
+  .card-title { font-size: 10px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--accent2); font-weight: 500; }
+  .card-body { padding: 16px; }
+  .section-sub { font-size: 10px; color: var(--muted); }
+
+  .badge { display: inline-block; font-size: 9px; padding: 2px 7px; border-radius: 2px; text-transform: uppercase; letter-spacing: 0.08em; border: 1px solid; white-space: nowrap; }
+  .badge-gold { color: var(--gold); border-color: rgba(240,165,0,0.4); background: rgba(240,165,0,0.08); }
+  .badge-blue { color: var(--accent); border-color: rgba(77,159,255,0.4); background: rgba(77,159,255,0.08); }
+  .badge-green { color: var(--green); border-color: rgba(61,220,132,0.4); background: rgba(61,220,132,0.08); }
+  .badge-warn { color: var(--warn); border-color: rgba(255,179,71,0.4); background: rgba(255,179,71,0.08); }
+
+  /* Inputs */
+  .field-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  @media (max-width: 700px) { .field-row { grid-template-columns: 1fr; } }
+  label.field { display: flex; flex-direction: column; gap: 5px; font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+  input[type=text], input[type=date] {
+    background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+    font-family: var(--mono); font-size: 12px; padding: 7px 10px; border-radius: 2px; outline: none; transition: border-color 0.2s; color-scheme: dark;
+  }
+  input:focus { border-color: var(--accent); }
+
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border: 1px solid var(--accent); background: transparent; color: var(--accent); font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; border-radius: 2px; transition: all 0.15s; white-space: nowrap; }
+  .btn:hover { background: rgba(77,159,255,0.1); }
+  .btn-gold { border-color: var(--gold); color: var(--gold); }
+  .btn-gold:hover { background: rgba(240,165,0,0.1); }
+  .btn-muted { border-color: var(--border); color: var(--muted); }
+  .btn-muted:hover { color: var(--text); border-color: var(--muted); background: transparent; }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* Progress */
+  .progress-wrap { display: flex; align-items: center; gap: 12px; }
+  .progress-bar { flex: 1; height: 4px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--gold); transition: width 0.25s; }
+  .progress-text { font-size: 10px; color: var(--muted); white-space: nowrap; }
+
+  /* Questions */
+  .question { padding: 14px 0; border-bottom: 1px dashed var(--border); }
+  .question:last-child { border-bottom: none; padding-bottom: 0; }
+  .question:first-child { padding-top: 0; }
+  .q-head { display: flex; gap: 10px; margin-bottom: 4px; }
+  .q-num { font-size: 10px; color: var(--gold); min-width: 22px; padding-top: 2px; }
+  .q-text { font-size: 13px; color: var(--text); line-height: 1.45; }
+  .q-help { font-size: 10px; color: var(--muted); margin: 0 0 10px 32px; line-height: 1.5; }
+  .options { display: flex; flex-wrap: wrap; gap: 6px; margin-left: 32px; }
+  .opt { position: relative; }
+  .opt input { position: absolute; opacity: 0; pointer-events: none; }
+  .opt span { display: block; padding: 7px 12px; border: 1px solid var(--border); border-radius: 2px; background: var(--surface2); font-size: 11px; color: var(--text); cursor: pointer; transition: all 0.15s; line-height: 1.4; }
+  .opt span:hover { border-color: var(--muted); }
+  .opt input:checked + span { border-color: var(--gold); background: rgba(240,165,0,0.1); color: var(--gold2); }
+  .opt input:focus-visible + span { outline: 1px solid var(--accent); outline-offset: 2px; }
+  .question.unanswered.flag .q-num { color: var(--danger); }
+
+  /* Score meters */
+  .meters { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .meter { background: var(--surface2); border: 1px solid var(--border); border-radius: 3px; padding: 10px; }
+  .meter-label { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
+  .meter-value { font-family: var(--serif); font-size: 26px; font-weight: 200; color: var(--accent2); line-height: 1.1; margin-top: 4px; }
+  .meter-value.final { color: var(--gold2); }
+  .meter-track { height: 3px; background: var(--border); border-radius: 2px; margin-top: 6px; overflow: hidden; }
+  .meter-fill { height: 100%; background: var(--accent); transition: width 0.25s; }
+  .meter-fill.final { background: var(--gold); }
+  .meter-sub { font-size: 9px; color: var(--muted); margin-top: 5px; }
+
+  /* Risk spectrum */
+  .spectrum { position: relative; height: 34px; margin-top: 16px; }
+  .spectrum-bar { position: absolute; top: 12px; left: 0; right: 0; height: 6px; border-radius: 3px; background: linear-gradient(90deg, #3ddc84, #4d9fff 45%, #f0a500 75%, #ff5c5c); opacity: 0.6; }
+  .spectrum-marker { position: absolute; top: 4px; width: 2px; height: 22px; background: var(--gold2); transform: translateX(-1px); transition: left 0.25s; box-shadow: 0 0 8px rgba(255,209,102,0.6); }
+  .spectrum-tick { position: absolute; top: 9px; width: 1px; height: 12px; background: var(--text); opacity: 0.35; }
+  .spectrum-labels { display: flex; justify-content: space-between; font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+
+  /* Recommendation */
+  .rec-empty { text-align: center; padding: 30px 10px; color: var(--muted); font-size: 11px; line-height: 1.7; }
+  .rec-eyebrow { font-size: 9px; color: var(--gold); text-transform: uppercase; letter-spacing: 0.16em; }
+  .rec-name { font-family: var(--serif); font-size: 28px; font-weight: 200; font-style: italic; color: var(--gold2); line-height: 1.15; margin-top: 4px; }
+  .rec-meta { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .rec-desc { font-size: 11px; color: var(--text); line-height: 1.6; margin-top: 12px; opacity: 0.85; }
+
+  .alloc-bar { display: flex; height: 14px; border-radius: 2px; overflow: hidden; margin-top: 14px; gap: 2px; }
+  .alloc-seg { height: 100%; }
+  .alloc-legend { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px 14px; margin-top: 10px; }
+  .alloc-item { display: flex; align-items: center; gap: 7px; font-size: 10px; color: var(--text); }
+  .alloc-item b { margin-left: auto; font-weight: 500; color: var(--accent2); }
+  .swatch { width: 8px; height: 8px; border-radius: 1px; flex-shrink: 0; }
+
+  .subhead { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; margin: 18px 0 8px; }
+  .reasons { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+  .reasons li { font-size: 11px; line-height: 1.5; padding-left: 14px; position: relative; }
+  .reasons li::before { content: '→'; position: absolute; left: 0; color: var(--accent); }
+  .reasons li.warn::before { content: '⚠'; color: var(--warn); }
+  .reasons li.warn { color: var(--warn); }
+
+  .rank-list { display: flex; flex-direction: column; gap: 4px; }
+  .rank-row { display: grid; grid-template-columns: 18px 1fr 90px 34px; align-items: center; gap: 10px; padding: 6px 8px; border-radius: 2px; font-size: 11px; cursor: pointer; border: 1px solid transparent; }
+  .rank-row:hover { background: var(--surface2); }
+  .rank-row.top { border-color: rgba(240,165,0,0.35); background: rgba(240,165,0,0.05); }
+  .rank-row.selected { border-color: var(--accent); }
+  .rank-pos { color: var(--muted); font-size: 10px; }
+  .rank-name { color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rank-track { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .rank-fill { height: 100%; background: var(--accent); }
+  .rank-row.top .rank-fill { background: var(--gold); }
+  .rank-score { text-align: right; color: var(--accent2); font-size: 10px; }
+
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .footnote { font-size: 9px; color: var(--muted); line-height: 1.6; }
+
+  .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--surface2); border: 1px solid var(--green); color: var(--green); padding: 8px 16px; font-size: 11px; border-radius: 2px; transition: transform 0.25s, opacity 0.25s; z-index: 10; opacity: 0; visibility: hidden; }
+  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; visibility: visible; }
+
+  /* Print: produce a clean client-file summary */
+  @media print {
+    :root { --bg: #fff; --surface: #fff; --surface2: #f5f6f8; --border: #d5d9e2; --text: #111; --muted: #555; --accent: #1d5fbf; --accent2: #1d5fbf; --gold: #9a6a00; --gold2: #9a6a00; }
+    body::before, .no-print { display: none !important; }
+    .layout { grid-template-columns: 1fr; }
+    .result-col { position: static; }
+    .opt span { display: none; }
+    .opt input:checked + span { display: block; border: none; background: none; padding: 0; color: #111; font-weight: 500; }
+    .card { break-inside: avoid; }
+    .question { break-inside: avoid; padding: 6px 0; }
+    .q-help { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+  <div class="logo-area">
+    <div class="logo-badge">FLP</div>
+    <div class="logo-text">
+      <h1>Model Portfolio Selector</h1>
+      <p>FLP Atrato Consulting · Advisor Suitability Questionnaire · Model Recommendation</p>
+    </div>
+  </div>
+  <div class="disclaimer">⚠ For advisor use only. Output is a starting point for a suitability conversation, not a substitute for the advisor's professional judgment or the firm's documented suitability process.</div>
+</header>
+
+<div class="layout">
+
+  <!-- ==================== LEFT: QUESTIONNAIRE ==================== -->
+  <div style="display:flex;flex-direction:column;gap:18px;">
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Engagement</span>
+        <div class="progress-wrap no-print" style="min-width:240px;">
+          <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+          <span class="progress-text" id="progress-text">0 / 0 answered</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="field-row">
+          <label class="field">Client / Household<input type="text" id="client-name" placeholder="e.g. Smith Family Trust"></label>
+          <label class="field">Advisor<input type="text" id="advisor-name" placeholder="Advisor name"></label>
+          <label class="field">Date<input type="date" id="review-date"></label>
+        </div>
+      </div>
+    </div>
+
+    <div id="sections"></div>
+
+    <div class="actions no-print">
+      <button class="btn btn-muted" onclick="resetAll()">↺ Reset Questionnaire</button>
+      <button class="btn btn-muted" onclick="loadSample()">Load Sample Client</button>
+    </div>
+  </div>
+
+  <!-- ==================== RIGHT: RESULT ==================== -->
+  <div class="result-col">
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Risk Profile</span>
+        <span class="badge badge-blue" id="profile-band">—</span>
+      </div>
+      <div class="card-body">
+        <div class="meters">
+          <div class="meter">
+            <div class="meter-label">Willingness</div>
+            <div class="meter-value" id="tol-value">—</div>
+            <div class="meter-track"><div class="meter-fill" id="tol-fill" style="width:0%"></div></div>
+            <div class="meter-sub">Risk tolerance</div>
+          </div>
+          <div class="meter">
+            <div class="meter-label">Ability</div>
+            <div class="meter-value" id="cap-value">—</div>
+            <div class="meter-track"><div class="meter-fill" id="cap-fill" style="width:0%"></div></div>
+            <div class="meter-sub">Risk capacity</div>
+          </div>
+          <div class="meter">
+            <div class="meter-label">Profile Score</div>
+            <div class="meter-value final" id="final-value">—</div>
+            <div class="meter-track"><div class="meter-fill final" id="final-fill" style="width:0%"></div></div>
+            <div class="meter-sub">Used for matching</div>
+          </div>
+        </div>
+        <div class="spectrum" id="spectrum">
+          <div class="spectrum-bar"></div>
+          <div class="spectrum-marker" id="spectrum-marker" style="left:0%;display:none;"></div>
+        </div>
+        <div class="spectrum-labels"><span>Preservation</span><span>Balanced</span><span>Aggressive</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Recommended Model</span>
+        <span class="badge badge-gold" id="fit-badge" style="display:none;"></span>
+      </div>
+      <div class="card-body" id="rec-body">
+        <div class="rec-empty">Answer the questionnaire to generate a model portfolio recommendation.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">All Models · Fit Ranking</span>
+        <span class="section-sub no-print">Click a row to compare</span>
+      </div>
+      <div class="card-body">
+        <div class="rank-list" id="rank-list"></div>
+      </div>
+    </div>
+
+    <div class="actions no-print">
+      <button class="btn btn-gold" id="btn-print" onclick="window.print()" disabled>⎙ Print / Save PDF</button>
+      <button class="btn" id="btn-copy" onclick="copySummary()" disabled>⧉ Copy Summary</button>
+    </div>
+    <div class="footnote">
+      Profile score blends willingness and ability to take risk, weighted toward the lower of the two. Hard guardrails (short horizon, high liquidity needs) cap the score regardless of stated tolerance. Model fit = proximity of the model's target risk to the profile score, adjusted for income, tax and values preferences.
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// =====================================================================
+//  MODEL PORTFOLIO CONFIGURATION
+//  Edit this list to reflect the firm's actual model lineup.
+//    risk   : target risk score 0–100 (0 = capital preservation, 100 = max equity)
+//    income : 0 = not income-oriented, 1 = some yield focus, 2 = income-first
+//    tax    : 0 = not tax-managed, 1 = tax-aware, 2 = tax-managed / §351-oriented
+//    esg    : 0 = no values screen, 2 = values-based / ESG screened
+//    minimum: account minimum in dollars (informational)
+//    allocation keys must exist in ASSET_CLASSES below and sum to 100
+// =====================================================================
+const MODELS = [
+  { id: 'CP',  name: 'Capital Preservation',        risk: 10, income: 1, tax: 0, esg: 0, minimum: 25000,
+    desc: 'Short-duration, high-quality fixed income and cash equivalents. Prioritizes stability of principal over growth.',
+    allocation: { usEq: 10, intlEq: 5, fixed: 65, alts: 0, cash: 20 } },
+  { id: 'CI',  name: 'Conservative Income',         risk: 25, income: 2, tax: 0, esg: 0, minimum: 50000,
+    desc: 'Diversified income sleeve of investment-grade bonds and dividend payers, built to fund regular distributions.',
+    allocation: { usEq: 20, intlEq: 5, fixed: 62, alts: 5, cash: 8 } },
+  { id: 'MC',  name: 'Moderate Conservative',       risk: 37, income: 1, tax: 0, esg: 0, minimum: 50000,
+    desc: 'Fixed-income anchored portfolio with a meaningful equity sleeve for modest real growth.',
+    allocation: { usEq: 27, intlEq: 10, fixed: 53, alts: 5, cash: 5 } },
+  { id: 'BAL', name: 'Balanced',                    risk: 52, income: 1, tax: 0, esg: 0, minimum: 50000,
+    desc: 'Classic balanced allocation targeting long-term growth with moderated drawdowns.',
+    allocation: { usEq: 37, intlEq: 15, fixed: 38, alts: 7, cash: 3 } },
+  { id: 'DIG', name: 'Dividend & Income Growth',    risk: 56, income: 2, tax: 1, esg: 0, minimum: 100000,
+    desc: 'Equity-tilted income model emphasizing dividend growers and qualified dividends alongside core bonds.',
+    allocation: { usEq: 42, intlEq: 13, fixed: 35, alts: 7, cash: 3 } },
+  { id: 'SUS', name: 'Sustainable Growth',          risk: 63, income: 0, tax: 0, esg: 2, minimum: 100000,
+    desc: 'ESG-screened equity and green/social bond exposure for clients with values-based mandates.',
+    allocation: { usEq: 42, intlEq: 20, fixed: 30, alts: 5, cash: 3 } },
+  { id: 'GR',  name: 'Growth',                      risk: 70, income: 0, tax: 1, esg: 0, minimum: 100000,
+    desc: 'Equity-dominant portfolio for long horizons with a fixed-income ballast for rebalancing.',
+    allocation: { usEq: 48, intlEq: 20, fixed: 22, alts: 8, cash: 2 } },
+  { id: 'TME', name: 'Tax-Managed Equity (§351)',   risk: 80, income: 0, tax: 2, esg: 0, minimum: 500000,
+    desc: 'Tax-managed, ETF-wrapped equity model designed for clients contributing appreciated securities via a §351 exchange. Emphasizes in-kind efficiency and loss harvesting.',
+    allocation: { usEq: 66, intlEq: 24, fixed: 5, alts: 3, cash: 2 } },
+  { id: 'AG',  name: 'Aggressive Growth',           risk: 90, income: 0, tax: 0, esg: 0, minimum: 100000,
+    desc: 'Near fully-invested equity portfolio, including small-cap and emerging markets, for maximum long-term growth.',
+    allocation: { usEq: 62, intlEq: 30, fixed: 0, alts: 6, cash: 2 } },
+];
+
+const ASSET_CLASSES = {
+  usEq:   { label: 'U.S. Equity',          color: '#4d9fff' },
+  intlEq: { label: 'International Equity', color: '#7ec8ff' },
+  fixed:  { label: 'Fixed Income',         color: '#3ddc84' },
+  alts:   { label: 'Alternatives',         color: '#f0a500' },
+  cash:   { label: 'Cash',                 color: '#4a5a80' },
+};
+
+// =====================================================================
+//  QUESTIONNAIRE
+//    dim: 'capacity' | 'tolerance' feed the risk score (option.score 0–100)
+//    dim: 'pref' sets a preference flag (option.pref)
+//    weight: relative weight within its dimension
+// =====================================================================
+const SECTIONS = [
+  { title: 'Time Horizon & Financial Capacity', sub: 'Ability to take risk', questions: [
+    { id: 'age', dim: 'capacity', weight: 1, text: "What is the client's age?",
+      options: [ ['Under 35', 100], ['35 – 49', 80], ['50 – 64', 55], ['65 – 74', 30], ['75 or older', 15] ] },
+    { id: 'horizon', dim: 'capacity', weight: 2.5, text: 'When will the client need to begin drawing significantly from this portfolio?',
+      help: 'Horizons under 3 years cap the profile at a conservative level regardless of tolerance.',
+      options: [ ['Within 3 years', 5], ['3 – 5 years', 30], ['6 – 10 years', 60], ['11 – 20 years', 85], ['20+ years', 100] ] },
+    { id: 'liquidity', dim: 'capacity', weight: 1.5, text: 'How much of the portfolio might be withdrawn in the next 2 years (beyond planned income)?',
+      options: [ ['More than 20%', 10], ['5% – 20%', 45], ['Less than 5%', 80], ['None expected', 100] ] },
+    { id: 'reliance', dim: 'capacity', weight: 1.5, text: "How reliant is the client on this portfolio for their standard of living?",
+      options: [ ['Primary source of support', 15], ['Supplements other income', 50], ['Stable income + emergency reserves elsewhere', 85], ['Small share of total wealth', 100] ] },
+  ]},
+  { title: 'Risk Tolerance', sub: 'Willingness to take risk', questions: [
+    { id: 'objective', dim: 'tolerance', weight: 1.5, text: "What best describes the client's primary investment objective?",
+      options: [ ['Preserve capital', 5], ['Generate income', 30], ['Balance growth & income', 55], ['Long-term growth', 80], ['Maximum growth', 100] ] },
+    { id: 'drawdown', dim: 'tolerance', weight: 2.5, text: 'If the portfolio fell 20% over a few months, how would the client most likely react?',
+      options: [ ['Sell everything', 0], ['Sell some to reduce risk', 25], ['Hold and wait it out', 65], ['Buy more at lower prices', 100] ] },
+    { id: 'range', dim: 'tolerance', weight: 1.5, text: 'Which range of one-year outcomes is the client most comfortable with?',
+      help: 'Illustrative worst / best one-year returns. Higher upside comes with deeper potential losses.',
+      options: [ ['−3% to +6%', 10], ['−8% to +12%', 40], ['−15% to +20%', 70], ['−25% to +30%', 100] ] },
+    { id: 'experience', dim: 'tolerance', weight: 0.75, text: "How would you describe the client's investment experience?",
+      options: [ ['None', 20], ['Limited', 45], ['Moderate', 70], ['Extensive', 95] ] },
+  ]},
+  { title: 'Preferences & Situation', sub: 'Tilts model selection', questions: [
+    { id: 'income', dim: 'pref', text: 'Does the client need current income from this portfolio?',
+      options: [ ['No — reinvest everything', { income: 0 }], ['Some — modest distributions', { income: 1 }], ['Yes — income is a primary goal', { income: 2 }] ] },
+    { id: 'account', dim: 'pref', text: 'What type of account(s) will hold the model?',
+      options: [ ['Tax-deferred (IRA / 401k)', { tax: 0 }], ['Taxable — moderate bracket', { tax: 1 }], ['Taxable — high bracket', { tax: 2 }] ] },
+    { id: 'appreciated', dim: 'pref', text: 'Is the client funding the account with highly appreciated or concentrated positions (e.g. via a §351 exchange)?',
+      help: 'Clients contributing appreciated securities in-kind generally benefit most from a tax-managed model.',
+      options: [ ['No', { s351: 0 }], ['Some appreciated positions', { s351: 1 }], ['Yes — §351 exchange candidate', { s351: 2 }] ] },
+    { id: 'esg', dim: 'pref', text: 'Does the client have an ESG or values-based investing preference?',
+      options: [ ['No preference', { esg: 0 }], ['Nice to have', { esg: 1 }], ['Required', { esg: 2 }] ] },
+  ]},
+];
+
+const QUESTIONS = SECTIONS.flatMap(s => s.questions);
+let answers = {};          // questionId -> option index
+let selectedModelId = null; // model shown in the detail card (defaults to top fit)
+
+// ---- Rendering the questionnaire ----
+function renderQuestions() {
+  let n = 0;
+  document.getElementById('sections').innerHTML = SECTIONS.map(sec => `
+    <div class="card" style="margin-bottom:18px;">
+      <div class="card-header"><span class="card-title">${sec.title}</span><span class="section-sub">${sec.sub}</span></div>
+      <div class="card-body">
+        ${sec.questions.map(q => { n++; return `
+          <div class="question" id="q-${q.id}">
+            <div class="q-head"><span class="q-num">${String(n).padStart(2,'0')}</span><span class="q-text">${q.text}</span></div>
+            ${q.help ? `<div class="q-help">${q.help}</div>` : ''}
+            <div class="options" role="radiogroup">
+              ${q.options.map((o, i) => `
+                <label class="opt"><input type="radio" name="${q.id}" value="${i}" onchange="setAnswer('${q.id}', ${i})"><span>${o[0]}</span></label>
+              `).join('')}
+            </div>
+          </div>`; }).join('')}
+      </div>
+    </div>`).join('');
+}
+
+function setAnswer(id, idx) {
+  answers[id] = idx;
+  selectedModelId = null;
+  update();
+}
+
+// ---- Scoring ----
+function weightedScore(dim) {
+  let sum = 0, w = 0;
+  QUESTIONS.filter(q => q.dim === dim && answers[q.id] !== undefined).forEach(q => {
+    sum += q.options[answers[q.id]][1] * q.weight;
+    w += q.weight;
+  });
+  return w ? sum / w : null;
+}
+
+function getPrefs() {
+  const prefs = { income: 0, tax: 0, s351: 0, esg: 0 };
+  QUESTIONS.filter(q => q.dim === 'pref' && answers[q.id] !== undefined)
+    .forEach(q => Object.assign(prefs, q.options[answers[q.id]][1]));
+  return prefs;
+}
+
+function computeProfile() {
+  const tol = weightedScore('tolerance');
+  const cap = weightedScore('capacity');
+  if (tol === null || cap === null) return { tol, cap, final: null, caps: [] };
+
+  // Weighted toward the lower of willingness and ability
+  let final = 0.65 * Math.min(tol, cap) + 0.35 * Math.max(tol, cap);
+
+  const caps = [];
+  const horizon = answers.horizon, liquidity = answers.liquidity;
+  if (horizon === 0 && final > 30) { final = 30; caps.push('Horizon under 3 years caps the profile at 30.'); }
+  if (liquidity === 0 && final > 45) { final = 45; caps.push('Expected withdrawals above 20% cap the profile at 45.'); }
+  return { tol, cap, final: Math.round(final), caps };
+}
+
+function bandFor(score) {
+  if (score < 20) return 'Preservation';
+  if (score < 35) return 'Conservative';
+  if (score < 48) return 'Moderately Conservative';
+  if (score < 62) return 'Moderate';
+  if (score < 76) return 'Moderately Aggressive';
+  return 'Aggressive';
+}
+
+function scoreModel(m, profile, prefs) {
+  const notes = [];
+  let fit = 100 - 1.5 * Math.abs(m.risk - profile.final);
+
+  // Income
+  if (prefs.income === 2) {
+    if (m.income === 2) { fit += 8; notes.push('Income-first design matches the client\'s distribution needs.'); }
+    else if (m.income === 0) fit -= 10;
+  } else if (prefs.income === 1 && m.income >= 1) fit += 3;
+  else if (prefs.income === 0 && m.income === 2) fit -= 4;
+
+  // Tax: tax management matters in taxable accounts and for §351 contributors
+  const taxNeed = Math.max(prefs.tax, prefs.s351);
+  if (m.tax === 2) {
+    if (prefs.s351 === 2) { fit += 14; notes.push('Built for in-kind §351 contributions of appreciated securities.'); }
+    else if (taxNeed === 2) { fit += 6; notes.push('Tax-managed implementation suits a high-bracket taxable account.'); }
+    else if (prefs.tax === 0 && prefs.s351 === 0) fit -= 12;
+  } else if (m.tax === 1 && taxNeed >= 1) { fit += 3; }
+  if (prefs.s351 === 2 && m.tax < 2) fit -= 4;
+
+  // Values-based
+  if (prefs.esg === 2) {
+    if (m.esg === 2) { fit += 14; notes.push('Satisfies the client\'s required ESG / values screen.'); }
+    else fit -= 18;
+  } else if (prefs.esg === 1 && m.esg === 2) { fit += 5; notes.push('Offers the ESG tilt the client would like.'); }
+
+  return { model: m, fit: Math.max(0, Math.min(100, Math.round(fit))), notes };
+}
+
+function rankModels(profile, prefs) {
+  return MODELS.map(m => scoreModel(m, profile, prefs)).sort((a, b) => b.fit - a.fit || Math.abs(a.model.risk - profile.final) - Math.abs(b.model.risk - profile.final));
+}
+
+// ---- Output ----
+function setMeter(key, val) {
+  document.getElementById(key + '-value').textContent = val === null ? '—' : Math.round(val);
+  document.getElementById(key + '-fill').style.width = (val === null ? 0 : val) + '%';
+}
+
+function allocationHTML(m) {
+  const entries = Object.entries(m.allocation).filter(([, v]) => v > 0);
+  return `
+    <div class="alloc-bar">${entries.map(([k, v]) => `<div class="alloc-seg" style="width:${v}%;background:${ASSET_CLASSES[k].color}" title="${ASSET_CLASSES[k].label} ${v}%"></div>`).join('')}</div>
+    <div class="alloc-legend">${entries.map(([k, v]) => `<div class="alloc-item"><span class="swatch" style="background:${ASSET_CLASSES[k].color}"></span>${ASSET_CLASSES[k].label}<b>${v}%</b></div>`).join('')}</div>`;
+}
+
+function buildReasons(profile, prefs, entry, ranked) {
+  const m = entry.model;
+  const reasons = [];
+  const diff = m.risk - profile.final;
+  reasons.push(`Model target risk ${m.risk} vs. client profile ${profile.final} (${bandFor(profile.final)})` +
+    (Math.abs(diff) <= 6 ? ' — close alignment.' : diff > 0 ? ' — model runs somewhat more aggressive.' : ' — model runs somewhat more conservative.'));
+  reasons.push(...entry.notes);
+
+  const warns = [...profile.caps];
+  if (Math.abs(profile.tol - profile.cap) >= 30) {
+    warns.push(profile.tol > profile.cap
+      ? 'Willingness to take risk materially exceeds ability. Discuss capacity constraints with the client and document the conversation.'
+      : 'Ability to take risk materially exceeds willingness. Consider client education before moving to a more growth-oriented model.');
+  }
+  if (prefs.esg === 2 && m.esg !== 2) warns.push('Client requires an ESG screen but this model is not screened.');
+  if (prefs.s351 === 2 && m.tax !== 2) warns.push('Client is a §351 candidate — review the Tax-Managed Equity (§351) model and run the 25/50 test in the §351 Exchange Optimizer.');
+  if (prefs.tax === 0 && m.tax === 2) warns.push('Tax-managed benefits are largely redundant in a tax-deferred account.');
+  const runnerUp = ranked.find(r => r.model.id !== m.id);
+  if (runnerUp && ranked[0].model.id === m.id && ranked[0].fit - runnerUp.fit <= 4) {
+    warns.push(`Close call with ${runnerUp.model.name} (fit ${runnerUp.fit}). Use advisor judgment.`);
+  }
+  return { reasons, warns };
+}
+
+function update() {
+  // Progress
+  const answered = QUESTIONS.filter(q => answers[q.id] !== undefined).length;
+  document.getElementById('progress-fill').style.width = (answered / QUESTIONS.length * 100) + '%';
+  document.getElementById('progress-text').textContent = `${answered} / ${QUESTIONS.length} answered`;
+  QUESTIONS.forEach(q => document.getElementById('q-' + q.id).classList.toggle('unanswered', answers[q.id] === undefined));
+
+  const profile = computeProfile();
+  const prefs = getPrefs();
+  setMeter('tol', profile.tol);
+  setMeter('cap', profile.cap);
+  setMeter('final', profile.final);
+
+  const marker = document.getElementById('spectrum-marker');
+  const band = document.getElementById('profile-band');
+  const complete = answered === QUESTIONS.length;
+  document.getElementById('btn-print').disabled = !complete;
+  document.getElementById('btn-copy').disabled = !complete;
+
+  if (profile.final === null) {
+    marker.style.display = 'none';
+    band.textContent = '—';
+    document.getElementById('fit-badge').style.display = 'none';
+    document.getElementById('rec-body').innerHTML = `<div class="rec-empty">Answer at least one <em>capacity</em> and one <em>tolerance</em> question to see a provisional recommendation.<br>All ${QUESTIONS.length} questions are required for a final recommendation.</div>`;
+    renderRanking(null, null);
+    return;
+  }
+
+  marker.style.display = 'block';
+  marker.style.left = profile.final + '%';
+  band.textContent = bandFor(profile.final);
+  renderSpectrumTicks();
+
+  const ranked = rankModels(profile, prefs);
+  const shown = ranked.find(r => r.model.id === selectedModelId) || ranked[0];
+  const isTop = shown === ranked[0];
+  const { reasons, warns } = buildReasons(profile, prefs, shown, ranked);
+  const m = shown.model;
+
+  const fitBadge = document.getElementById('fit-badge');
+  fitBadge.style.display = 'inline-block';
+  fitBadge.textContent = `Fit ${shown.fit} / 100`;
+
+  document.getElementById('rec-body').innerHTML = `
+    <div class="rec-eyebrow">${isTop ? (complete ? 'Recommended' : 'Provisional — questionnaire incomplete') : 'Comparing alternative'}</div>
+    <div class="rec-name">${m.name}</div>
+    <div class="rec-meta">
+      <span class="badge badge-blue">Risk ${m.risk}</span>
+      ${m.income === 2 ? '<span class="badge badge-green">Income</span>' : ''}
+      ${m.tax === 2 ? '<span class="badge badge-gold">Tax-Managed</span>' : m.tax === 1 ? '<span class="badge badge-blue">Tax-Aware</span>' : ''}
+      ${m.esg === 2 ? '<span class="badge badge-green">ESG</span>' : ''}
+      <span class="badge badge-blue">Min $${m.minimum.toLocaleString()}</span>
+    </div>
+    <div class="rec-desc">${m.desc}</div>
+    ${allocationHTML(m)}
+    <div class="subhead">Rationale</div>
+    <ul class="reasons">${reasons.map(r => `<li>${r}</li>`).join('')}${warns.map(w => `<li class="warn">${w}</li>`).join('')}</ul>
+    ${!isTop ? `<div style="margin-top:14px;" class="no-print"><button class="btn btn-muted" onclick="selectModel(null)">← Back to recommendation</button></div>` : ''}
+  `;
+  renderRanking(ranked, shown.model.id);
+}
+
+function renderSpectrumTicks() {
+  const sp = document.getElementById('spectrum');
+  if (sp.dataset.ticks) return;
+  sp.insertAdjacentHTML('beforeend', MODELS.map(m => `<div class="spectrum-tick" style="left:${m.risk}%" title="${m.name} (${m.risk})"></div>`).join(''));
+  sp.dataset.ticks = '1';
+}
+
+function renderRanking(ranked, shownId) {
+  const list = document.getElementById('rank-list');
+  if (!ranked) {
+    list.innerHTML = MODELS.map(m => `
+      <div class="rank-row" style="cursor:default"><span class="rank-pos">·</span><span class="rank-name">${m.name}</span>
+      <div class="rank-track"><div class="rank-fill" style="width:${m.risk}%;opacity:0.4"></div></div><span class="rank-score">r${m.risk}</span></div>`).join('');
+    return;
+  }
+  list.innerHTML = ranked.map((r, i) => `
+    <div class="rank-row ${i === 0 ? 'top' : ''} ${r.model.id === shownId && i !== 0 ? 'selected' : ''}" onclick="selectModel('${r.model.id}')">
+      <span class="rank-pos">${i + 1}</span>
+      <span class="rank-name">${r.model.name}</span>
+      <div class="rank-track"><div class="rank-fill" style="width:${r.fit}%"></div></div>
+      <span class="rank-score">${r.fit}</span>
+    </div>`).join('');
+}
+
+function selectModel(id) { selectedModelId = id; update(); }
+
+// ---- Actions ----
+function summaryText() {
+  const profile = computeProfile();
+  const prefs = getPrefs();
+  const ranked = rankModels(profile, prefs);
+  const top = ranked[0];
+  const { reasons, warns } = buildReasons(profile, prefs, top, ranked);
+  const val = id => document.getElementById(id).value || '—';
+  const lines = [
+    'MODEL PORTFOLIO RECOMMENDATION',
+    `Client: ${val('client-name')}   Advisor: ${val('advisor-name')}   Date: ${val('review-date')}`,
+    '',
+    `Risk profile: ${profile.final} (${bandFor(profile.final)})  ·  Willingness ${Math.round(profile.tol)}  ·  Ability ${Math.round(profile.cap)}`,
+    `Recommended model: ${top.model.name}  (fit ${top.fit}/100)`,
+    'Allocation: ' + Object.entries(top.model.allocation).filter(([, v]) => v > 0).map(([k, v]) => `${ASSET_CLASSES[k].label} ${v}%`).join(', '),
+    '',
+    'Rationale:', ...reasons.map(r => '  - ' + r),
+    ...(warns.length ? ['', 'Considerations:', ...warns.map(w => '  ! ' + w)] : []),
+    '',
+    'Alternatives: ' + ranked.slice(1, 3).map(r => `${r.model.name} (fit ${r.fit})`).join('; '),
+    '',
+    'Responses:',
+    ...QUESTIONS.map((q, i) => `  ${String(i + 1).padStart(2, '0')}. ${q.text}  →  ${q.options[answers[q.id]][0]}`),
+  ];
+  return lines.join('\n');
+}
+
+function copySummary() {
+  const text = summaryText();
+  const done = () => toast('Summary copied to clipboard');
+  if (navigator.clipboard) navigator.clipboard.writeText(text).then(done, () => fallbackCopy(text, done));
+  else fallbackCopy(text, done);
+}
+
+function fallbackCopy(text, done) {
+  const ta = document.createElement('textarea');
+  ta.value = text; document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); done(); } catch (e) { alert(text); }
+  ta.remove();
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+function applyAnswers(a) {
+  answers = { ...a };
+  selectedModelId = null;
+  document.querySelectorAll('.opt input').forEach(inp => { inp.checked = answers[inp.name] === Number(inp.value); });
+  update();
+}
+
+function resetAll() {
+  ['client-name', 'advisor-name'].forEach(id => document.getElementById(id).value = '');
+  applyAnswers({});
+}
+
+function loadSample() {
+  document.getElementById('client-name').value = 'Sample Client — Tech Executive';
+  document.getElementById('advisor-name').value = 'Advisor';
+  applyAnswers({ age: 2, horizon: 3, liquidity: 2, reliance: 2, objective: 3, drawdown: 2, range: 2, experience: 3, income: 0, account: 2, appreciated: 2, esg: 0 });
+}
+
+// ---- Init ----
+document.getElementById('review-date').valueAsDate = new Date();
+renderQuestions();
+update();
+</script>
+</body>
+</html>
