@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Model Portfolio Selector — FLP Atrato</title>
+<title>Model Portfolio Selector</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Fraunces:ital,wght@0,200;0,400;0,700;1,200;1,400&display=swap');
 
@@ -21,8 +21,24 @@
     --danger: #ff5c5c;
     --text: #d0daf0;
     --muted: #4a5a80;
-    --mono: 'DM Mono', monospace;
-    --serif: 'Fraunces', serif;
+    --on-gold: #07090f;
+    --mono: 'DM Mono', ui-monospace, Menlo, Consolas, monospace;
+    --serif: 'Fraunces', Georgia, serif;
+    color-scheme: dark;
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --bg: #f3f5f9; --surface: #ffffff; --surface2: #eef1f6; --border: #d5dbe7;
+      --accent: #1f6fd6; --accent2: #1a5bb5; --gold: #b37a00; --gold2: #8a5d00;
+      --green: #178a4e; --warn: #b5650a; --danger: #cc3333; --text: #18213a; --muted: #5f6b8a;
+      --on-gold: #ffffff; color-scheme: light;
+    }
+  }
+  :root[data-theme="light"] {
+    --bg: #f3f5f9; --surface: #ffffff; --surface2: #eef1f6; --border: #d5dbe7;
+    --accent: #1f6fd6; --accent2: #1a5bb5; --gold: #b37a00; --gold2: #8a5d00;
+    --green: #178a4e; --warn: #b5650a; --danger: #cc3333; --text: #18213a; --muted: #5f6b8a;
+    --on-gold: #ffffff; color-scheme: light;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -39,7 +55,7 @@
   /* Header */
   header { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 24px; padding-bottom: 18px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
   .logo-area { display: flex; align-items: center; gap: 16px; }
-  .logo-badge { width: 44px; height: 44px; background: var(--gold); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-family: var(--serif); font-size: 18px; font-weight: 700; color: #07090f; }
+  .logo-badge { width: 44px; height: 44px; background: var(--gold); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-family: var(--serif); font-size: 18px; font-weight: 700; color: var(--on-gold); }
   .logo-text h1 { font-family: var(--serif); font-size: 26px; font-weight: 200; font-style: italic; color: var(--accent2); letter-spacing: -0.5px; line-height: 1; }
   .logo-text p { font-size: 10px; color: var(--muted); margin-top: 3px; letter-spacing: 0.12em; text-transform: uppercase; }
   .disclaimer { font-size: 10px; color: var(--muted); max-width: 340px; line-height: 1.6; border-left: 2px solid var(--border); padding-left: 12px; }
@@ -64,7 +80,7 @@
 
   /* Inputs */
   .field-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-  @media (max-width: 700px) { .field-row { grid-template-columns: 1fr; } }
+  @media (max-width: 700px) { .field-row { grid-template-columns: 1fr; } .container { padding: 16px; } }
   label.field { display: flex; flex-direction: column; gap: 5px; font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
   input[type=text], input[type=date] {
     background: var(--surface2); border: 1px solid var(--border); color: var(--text);
@@ -116,7 +132,7 @@
 
   /* Risk spectrum */
   .spectrum { position: relative; height: 34px; margin-top: 16px; }
-  .spectrum-bar { position: absolute; top: 12px; left: 0; right: 0; height: 6px; border-radius: 3px; background: linear-gradient(90deg, #3ddc84, #4d9fff 45%, #f0a500 75%, #ff5c5c); opacity: 0.6; }
+  .spectrum-bar { position: absolute; top: 12px; left: 0; right: 0; height: 6px; border-radius: 3px; background: linear-gradient(90deg, var(--green), var(--accent) 45%, var(--gold) 75%, var(--danger)); opacity: 0.7; }
   .spectrum-marker { position: absolute; top: 4px; width: 2px; height: 22px; background: var(--gold2); transform: translateX(-1px); transition: left 0.25s; box-shadow: 0 0 8px rgba(255,209,102,0.6); }
   .spectrum-tick { position: absolute; top: 9px; width: 1px; height: 12px; background: var(--text); opacity: 0.35; }
   .spectrum-labels { display: flex; justify-content: space-between; font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
@@ -196,7 +212,7 @@
     <div class="card">
       <div class="card-header">
         <span class="card-title">Engagement</span>
-        <div class="progress-wrap no-print" style="min-width:240px;">
+        <div class="progress-wrap no-print" style="min-width:min(240px,100%);">
           <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
           <span class="progress-text" id="progress-text">0 / 0 answered</span>
         </div>
@@ -276,8 +292,11 @@
     </div>
 
     <div class="actions no-print">
-      <button class="btn btn-gold" id="btn-print" onclick="window.print()" disabled>⎙ Print / Save PDF</button>
-      <button class="btn" id="btn-copy" onclick="copySummary()" disabled>⧉ Copy Summary</button>
+      <button class="btn btn-gold" id="btn-copy" onclick="copySummary()" disabled>⧉ Copy Summary for Client File</button>
+    </div>
+    <div id="copy-fallback" class="no-print" hidden>
+      <div class="footnote" style="margin-bottom:6px;">Copy blocked by this browser. The summary is selected below. Press Ctrl+C / ⌘C.</div>
+      <textarea id="copy-text" readonly rows="10" style="width:100%;background:var(--surface2);color:var(--text);border:1px solid var(--border);font-family:var(--mono);font-size:11px;padding:8px;border-radius:2px;"></textarea>
     </div>
     <div class="footnote">
       Profile score blends willingness and ability to take risk, weighted toward the lower of the two. Hard guardrails (short horizon, high liquidity needs) cap the score regardless of stated tolerance. Model fit = proximity of the model's target risk to the profile score, adjusted for income, tax and values preferences.
@@ -330,11 +349,11 @@ const MODELS = [
 ];
 
 const ASSET_CLASSES = {
-  usEq:   { label: 'U.S. Equity',          color: '#4d9fff' },
-  intlEq: { label: 'International Equity', color: '#7ec8ff' },
-  fixed:  { label: 'Fixed Income',         color: '#3ddc84' },
-  alts:   { label: 'Alternatives',         color: '#f0a500' },
-  cash:   { label: 'Cash',                 color: '#4a5a80' },
+  usEq:   { label: 'U.S. Equity',          color: 'var(--accent)' },
+  intlEq: { label: 'International Equity', color: 'color-mix(in srgb, var(--accent) 45%, var(--surface))' },
+  fixed:  { label: 'Fixed Income',         color: 'var(--green)' },
+  alts:   { label: 'Alternatives',         color: 'var(--gold)' },
+  cash:   { label: 'Cash',                 color: 'var(--muted)' },
 };
 
 // =====================================================================
@@ -537,7 +556,6 @@ function update() {
   const marker = document.getElementById('spectrum-marker');
   const band = document.getElementById('profile-band');
   const complete = answered === QUESTIONS.length;
-  document.getElementById('btn-print').disabled = !complete;
   document.getElementById('btn-copy').disabled = !complete;
 
   if (profile.final === null) {
@@ -638,16 +656,15 @@ function summaryText() {
 
 function copySummary() {
   const text = summaryText();
-  const done = () => toast('Summary copied to clipboard');
-  if (navigator.clipboard) navigator.clipboard.writeText(text).then(done, () => fallbackCopy(text, done));
-  else fallbackCopy(text, done);
-}
-
-function fallbackCopy(text, done) {
-  const ta = document.createElement('textarea');
-  ta.value = text; document.body.appendChild(ta); ta.select();
-  try { document.execCommand('copy'); done(); } catch (e) { alert(text); }
-  ta.remove();
+  document.getElementById('copy-fallback').hidden = true;
+  const fallback = () => {
+    const box = document.getElementById('copy-fallback'), ta = document.getElementById('copy-text');
+    ta.value = text; box.hidden = false; ta.focus(); ta.select();
+  };
+  try {
+    if (navigator.clipboard) navigator.clipboard.writeText(text).then(() => toast('Summary copied to clipboard'), fallback);
+    else fallback();
+  } catch (e) { fallback(); }
 }
 
 function toast(msg) {
@@ -665,6 +682,7 @@ function applyAnswers(a) {
 
 function resetAll() {
   ['client-name', 'advisor-name'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('copy-fallback').hidden = true;
   applyAnswers({});
 }
 
